@@ -10,3 +10,15 @@ sentence-transformers
 faiss-cpu
 tiktoken
 python-multipart
+faiss-cpu
+fastapi
+google-generativeai
+pillow
+pydantic
+pymupdf
+pytesseract
+python-multipart
+requests
+sentence-transformers
+tiktoken
+uvicorn

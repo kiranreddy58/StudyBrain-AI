@@ -1,4 +1,3 @@
-import faiss
 import numpy as np
 import os
 import json
@@ -9,8 +8,14 @@ METADATA_FILE = "data/vector_index/metadata.json"
 class VectorStore:
     def __init__(self, dimension: int = 384):
         self.dimension = dimension
-        self.index = faiss.IndexFlatL2(dimension)
-        self.metadata = []  # List of dicts matching index order
+        self._index = None
+        self.metadata = []
+
+    def _get_index(self):
+        if self._index is None:
+            import faiss
+            self._index = faiss.IndexFlatL2(self.dimension)
+        return self._index
 
     def add_chunks(self, embeddings: np.ndarray, chunk_metadata: list):
         """
@@ -19,14 +24,14 @@ class VectorStore:
         if embeddings.shape[0] == 0:
             return
             
-        self.index.add(embeddings)
+        self._get_index().add(embeddings)
         self.metadata.extend(chunk_metadata)
 
     def search(self, query_embedding: np.ndarray, top_k: int = 5):
         """
         Performs similarity search and returns top-k chunks with metadata.
         """
-        distances, indices = self.index.search(query_embedding, top_k)
+        distances, indices = self._get_index().search(query_embedding, top_k)
         
         results = []
         for i in range(len(indices[0])):
@@ -42,8 +47,9 @@ class VectorStore:
         """
         Saves the FAISS index and metadata to disk.
         """
+        import faiss
         os.makedirs(os.path.dirname(INDEX_FILE), exist_ok=True)
-        faiss.write_index(self.index, INDEX_FILE)
+        faiss.write_index(self._get_index(), INDEX_FILE)
         with open(METADATA_FILE, 'w', encoding='utf-8') as f:
             json.dump(self.metadata, f, indent=2)
 
@@ -52,7 +58,8 @@ class VectorStore:
         Loads the index and metadata from disk.
         """
         if os.path.exists(INDEX_FILE) and os.path.exists(METADATA_FILE):
-            self.index = faiss.read_index(INDEX_FILE)
+            import faiss
+            self._index = faiss.read_index(INDEX_FILE)
             with open(METADATA_FILE, 'r', encoding='utf-8') as f:
                 self.metadata = json.load(f)
             return True

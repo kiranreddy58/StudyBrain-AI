@@ -1,9 +1,13 @@
-from sentence_transformers import SentenceTransformer
 import numpy as np
 
-# Load a lightweight, efficient embedding model
-# 'all-MiniLM-L6-v2' is small (~80MB) and fast for local use
-model = SentenceTransformer('all-MiniLM-L6-v2')
+_model = None
+
+def _get_model():
+    global _model
+    if _model is None:
+        from sentence_transformers import SentenceTransformer
+        _model = SentenceTransformer('all-MiniLM-L6-v2')
+    return _model
 
 def generate_embeddings(text_list: list) -> np.ndarray:
     """
@@ -12,6 +16,7 @@ def generate_embeddings(text_list: list) -> np.ndarray:
     if not text_list:
         return np.array([])
         
+    model = _get_model()
     embeddings = model.encode(text_list)
     return np.array(embeddings).astype('float32')
 
@@ -19,5 +24,6 @@ def generate_query_embedding(query: str) -> np.ndarray:
     """
     Converts a single query string into an embedding vector.
     """
+    model = _get_model()
     embedding = model.encode([query])
     return np.array(embedding).astype('float32')
