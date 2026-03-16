@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+pydantic
+google-generativeai
+requests
+pymupdf
+pytesseract
+pillow
+sentence-transformers
+faiss-cpu
+tiktoken
+python-multipart

@@ -1,0 +1,95 @@
+/* FeaturesSection.css */
+
+.features-section {
+  padding: clamp(4rem, 8vh, 7rem) clamp(1.5rem, 6vw, 6rem);
+  position: relative;
+}
+
+.features-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  z-index: -1;
+}
+
+.features-header {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 4rem;
+}
+
+.features-header .section-sub {
+  margin: 0 auto;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background: rgba(5, 5, 20, 0.62);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 1.25rem;
+  padding: 2rem;
+  transition: transform 0.35s var(--ease-cinematic),
+              border-color 0.35s ease,
+              background 0.35s ease,
+              box-shadow 0.35s ease;
+  opacity: 0;
+  transform: translateY(32px);
+  cursor: default;
+}
+
+.feature-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.feature-card:hover {
+  border-color: rgba(99, 102, 241, 0.32);
+  background: rgba(99, 102, 241, 0.06);
+  transform: translateY(-5px);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45), 0 0 36px rgba(99, 102, 241, 0.1);
+}
+
+.feature-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.45rem;
+  margin-bottom: 1.25rem;
+}
+
+.feature-icon.indigo { background: rgba(99,102,241,0.14); border: 1px solid rgba(99,102,241,0.22); }
+.feature-icon.cyan   { background: rgba(34,211,238,0.12); border: 1px solid rgba(34,211,238,0.2); }
+.feature-icon.violet { background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.2); }
+.feature-icon.green  { background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.2); }
+.feature-icon.orange { background: rgba(251,146,60,0.12); border: 1px solid rgba(251,146,60,0.2); }
+.feature-icon.pink   { background: rgba(244,114,182,0.12); border: 1px solid rgba(244,114,182,0.2); }
+
+.feature-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #fff;
+  margin-bottom: 0.55rem;
+}
+
+.feature-desc {
+  font-size: 0.87rem;
+  font-weight: 300;
+  line-height: 1.65;
+  color: var(--color-text-muted);
+}

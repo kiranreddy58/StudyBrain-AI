@@ -1,0 +1,109 @@
+/* Progress.css */
+
+.progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.progress-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+}
+
+.consistency-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 1.5rem;
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  gap: 6px;
+  margin-top: 1.5rem;
+}
+
+.heatmap-cell {
+  aspect-ratio: 1/1;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.2s;
+}
+
+.heatmap-cell.lvl-1 { background: rgba(99, 102, 241, 0.2); }
+.heatmap-cell.lvl-2 { background: rgba(99, 102, 241, 0.4); }
+.heatmap-cell.lvl-3 { background: rgba(99, 102, 241, 0.7); }
+.heatmap-cell.lvl-4 { background: var(--color-accent); }
+
+.mastery-radar {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.radar-circle {
+  width: 180px;
+  height: 180px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radar-point {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--color-accent-2);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--color-accent-2);
+}
+
+.progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 1.5rem;
+}
+
+.topic-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.topic-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.topic-main { flex: 1; }
+
+.topic-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+@media (max-width: 1024px) {
+  .progress-grid { grid-template-columns: 1fr; }
+}
