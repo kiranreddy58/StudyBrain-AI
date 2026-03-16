@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import './Library.css';
 import { Search, FileText, FileCode, Image as ImageIcon, Plus, MessageCircle, Eye } from 'lucide-react';
 
-const API = 'http://127.0.0.1:8000/api';
+const API = '/api';
 
 const getIcon = (type) => {
   switch (type) {

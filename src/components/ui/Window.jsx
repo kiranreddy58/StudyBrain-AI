@@ -3,7 +3,7 @@ import Draggable from 'react-draggable';
 import { MessageSquare, X, Minus, Square, Send } from 'lucide-react';
 import './Window.css';
 
-const API = 'http://127.0.0.1:8000/api';
+const API = '/api';
 
 export default function Window({ id, title, onClose, initialPos = { x: 50, y: 50 } }) {
   const nodeRef = useRef(null);

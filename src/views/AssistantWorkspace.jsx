@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './AssistantWorkspace.css';
 import { Send, Paperclip, Sparkles, BookOpen, Clock, Brain, HelpCircle } from 'lucide-react';
 
-const API = 'http://127.0.0.1:8000/api';
+const API = '/api';
 
 // Window modes and their backend endpoints
 const MODES = [

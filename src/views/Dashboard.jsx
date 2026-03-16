@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './Dashboard.css';
 import { Book, Clock, Target, Zap, ChevronRight, Loader } from 'lucide-react';
 
-const API = 'http://127.0.0.1:8000/api';
+const API = '/api';
 
 export default function Dashboard({ user }) {
   const [mastery, setMastery] = useState([]);
