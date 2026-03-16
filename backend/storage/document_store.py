@@ -43,14 +43,24 @@ def list_processed_documents():
                 with open(file_path, "r", encoding="utf-8") as j:
                     chunks = json.load(j)
                     if chunks:
-                        # Extract metadata from the first chunk
-                        meta = chunks[0].get('metadata', {})
+                        # Chunks are flat dicts — source is a direct key
+                        first = chunks[0]
+                        source = first.get('source', doc_id)
+                        # Detect type from metadata
+                        if 'code_type' in first:
+                            doc_type = 'code'
+                        elif first.get('type') == 'image_ocr':
+                            doc_type = 'image'
+                        elif source.lower().endswith('.pdf'):
+                            doc_type = 'pdf'
+                        else:
+                            doc_type = 'text'
                         docs.append({
                             "id": doc_id,
-                            "filename": meta.get('source', doc_id),
-                            "type": meta.get('type', 'pdf'), # fallback
+                            "filename": source,
+                            "type": doc_type,
                             "chunks_count": len(chunks),
-                            "uploaded_at": os.path.getmtime(file_path) * 1000 # to ms
+                            "uploaded_at": os.path.getmtime(file_path) * 1000
                         })
             except:
                 continue

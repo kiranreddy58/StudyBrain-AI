@@ -61,9 +61,9 @@ export default function Window({ id, title, onClose, initialPos = { x: 50, y: 50
             <span>{title}</span>
           </div>
           <div className="window-controls">
-            <button className="window-control minimize" />
-            <button className="window-control maximize" />
-            <button className="window-control close" onClick={onClose} />
+            <button className="window-close-btn" onClick={onClose} title="Close">
+              <X size={14} />
+            </button>
           </div>
         </div>
 

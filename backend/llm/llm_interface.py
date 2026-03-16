@@ -19,7 +19,7 @@ class StudyBrainLLM:
         try:
             import google.generativeai as genai
             genai.configure(api_key=API_KEY)
-            candidates = ['gemini-1.5-flash', 'gemini-flash-latest', 'gemini-1.5-pro', 'gemini-pro']
+            candidates = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-latest', 'gemini-1.5-flash-001', 'gemini-1.5-pro-latest', 'gemini-pro']
             for model_name in candidates:
                 try:
                     print(f"Attempting to initialize Gemini model: {model_name}...")
