@@ -1,0 +1,317 @@
+.module-workspace {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 2rem;
+  background: var(--color-bg);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.module-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.header-icon {
+  color: var(--color-accent);
+  background: rgba(99, 102, 241, 0.1);
+  padding: 0.75rem;
+  border-radius: 12px;
+  box-sizing: content-box;
+}
+
+.module-header h3 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.module-header p {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin: 0.25rem 0 0 0;
+}
+
+.module-content {
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.input-box-large {
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.input-box-large:focus-within {
+  border-color: var(--color-accent);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+}
+
+.input-box-large textarea {
+  width: 100%;
+  min-height: 100px;
+  background: transparent;
+  border: none;
+  color: white;
+  resize: none;
+  font-size: 1rem;
+  outline: none;
+  padding-right: 4rem;
+}
+
+.send-circle {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.send-circle:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+}
+
+.send-circle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ai-loading {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.shimmer-line {
+  height: 16px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.shimmer-line.short { width: 60%; }
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.explanation-card, .guidance-container {
+  margin-top: 2.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2rem;
+  position: relative;
+  line-height: 1.7;
+}
+
+.card-accent {
+  position: absolute;
+  top: 0;
+  left: 30px;
+  width: 40px;
+  height: 4px;
+  background: var(--color-accent);
+  border-radius: 0 0 4px 4px;
+}
+
+.result-text {
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.step-label {
+  display: inline-block;
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--color-accent);
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.guidance-footer {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-accent);
+}
+
+.module-suggestions {
+  margin-top: 3rem;
+}
+
+.module-suggestions p {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-bottom: 1rem;
+}
+
+.suggestion-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.suggestion-chips button {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--color-text-muted);
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.suggestion-chips button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  border-color: var(--color-accent);
+}
+
+.module-info-card {
+  margin-top: 4rem;
+  text-align: center;
+  opacity: 0.6;
+}
+
+.module-info-card h4 {
+  margin: 1rem 0 0.5rem;
+}
+
+.module-info-card p {
+  font-size: 0.85rem;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.animate-in {
+  animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Side Panel Optimization */
+.module-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.module-panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.side-input-area {
+  position: relative;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 0.75rem;
+  transition: all 0.2s;
+}
+
+.side-input-area:focus-within {
+  border-color: var(--color-accent);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.side-input-area textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #fff;
+  resize: none;
+  font-size: 0.9rem;
+  outline: none;
+  padding-right: 2.5rem;
+  line-height: 1.4;
+}
+
+.side-send-btn {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.side-send-btn:hover:not(:disabled) {
+  transform: scale(1.1);
+}
+
+.side-send-btn:disabled {
+  opacity: 0.5;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.spinner-sm {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Override existing cards for side panel */
+.module-panel .explanation-card, 
+.module-panel .guidance-container {
+  margin-top: 0;
+  padding: 1.25rem;
+  border-radius: 16px;
+  font-size: 0.9rem;
+}
+
+.module-panel .result-text {
+  font-size: 0.9rem;
+}

@@ -2,6 +2,21 @@
    STUDYBRAIN AI — Global Reset & Design Tokens
    ============================================================ */
 
+@font-face {
+  font-family: 'Outfit';
+  src: url('/fonts/outfit/Outfit-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Outfit';
+  src: url('/fonts/outfit/Outfit-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+
 :root {
   --color-bg: #000000;
   --color-surface: rgba(255, 255, 255, 0.04);
@@ -220,7 +235,17 @@ body {
 }
 
 /* Global Responsive Utilities */
+@media (max-width: 1024px) {
+  :root {
+    --radius-card: 1rem;
+  }
+}
+
 @media (max-width: 768px) {
+  .section-overlay {
+    padding: 4rem 1.5rem;
+  }
+
   .shell-container {
     flex-direction: column;
   }
@@ -254,5 +279,12 @@ body {
 
   .sidebar-link span {
     display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn-primary, .btn-ghost {
+    width: 100%;
+    padding: 0.75rem 1.5rem;
   }
 }

@@ -1,6 +1,6 @@
 import './Footer.css';
 
-export default function Footer() {
+export default function Footer({ onEnterApp }) {
   return (
     <footer className="footer">
       <a href="#top" className="footer-brand">StudyBrain AI</a>
@@ -9,7 +9,7 @@ export default function Footer() {
         <li><a href="#product">Product</a></li>
         <li><a href="#features">Features</a></li>
         <li><a href="#tech">Tech Stack</a></li>
-        <li><a href="#cta">Get Started</a></li>
+        <li><button onClick={onEnterApp} className="footer-btn-link">Get Started</button></li>
       </ul>
     </footer>
   );

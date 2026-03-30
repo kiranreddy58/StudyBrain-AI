@@ -1,26 +1,36 @@
 import { useState, useEffect } from 'react';
 import './Dashboard.css';
 import { Book, Clock, Target, Zap, ChevronRight, Loader } from 'lucide-react';
+import OnboardingWelcome from '../components/OnboardingWelcome';
 
 const API = '/api';
 
-export default function Dashboard({ user }) {
+export default function Dashboard({ user, onSwitchView }) {
   const [mastery, setMastery] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
-  const [stats, setStats] = useState({ studyTime: '—', streak: '—' });
+  const [docsCount, setDocsCount] = useState(0);
+  const [stats, setStats] = useState({ studyTime: '0h', streak: '0d' });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [masteryRes, recRes] = await Promise.all([
+        const [masteryRes, recRes, docRes] = await Promise.all([
           fetch(`${API}/learning/topic-mastery`),
           fetch(`${API}/copilot/learning-progress`),
+          fetch(`${API}/documents`),
         ]);
+        
         if (masteryRes.ok) {
-          const data = await masteryRes.json();
-          setMastery(data.topics || []);
+          const m = await masteryRes.json();
+          setMastery(m.topics || []);
         }
+
+        if (docRes.ok) {
+          const d = await docRes.json();
+          setDocsCount(d.documents?.length || 0);
+        }
+
         if (recRes.ok) {
           const data = await recRes.json();
           setRecommendations(data.recommendations || []);
@@ -31,26 +41,43 @@ export default function Dashboard({ user }) {
         }
       } catch (err) {
         console.error("Dashboard fetch error:", err);
-        setMastery([]);
-        setRecommendations([]);
       } finally {
         setLoading(false);
       }
     }
+
     fetchData();
+
+    // SSE Real-time updates
+    const eventSource = new EventSource(`${API}/events`);
+    
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log("Real-time update received:", data.type);
+      // Refresh all dashboard data when any relevant update occurs
+      fetchData();
+    };
+
+    eventSource.onerror = (err) => {
+      console.error("SSE Connection error:", err);
+      eventSource.close();
+    };
+
+    return () => {
+      eventSource.close();
+    };
   }, []);
 
   // Derive quick-stats from live mastery data
-  const totalTopics = mastery.length;
   const avgAccuracy = mastery.length
     ? Math.round(mastery.reduce((s, t) => s + t.mastery_score, 0) / mastery.length)
     : 0;
 
   const STATS_CARDS = [
-    { label: 'Topics Tracked', value: String(totalTopics || '—'), icon: Book, color: '#6366f1' },
-    { label: 'Study Time', value: stats.studyTime, icon: Clock, color: '#22d3ee' },
-    { label: 'Avg. Mastery', value: mastery.length ? `${avgAccuracy}%` : '—', icon: Target, color: '#a78bfa' },
-    { label: 'Study Streak', value: stats.streak, icon: Zap, color: '#f59e0b' },
+    { label: 'Topics Tracked', value: String(docsCount), icon: Book, color: '#6366f1' },
+    { label: 'Study Time', value: stats.studyTime || '0h', icon: Clock, color: '#22d3ee' },
+    { label: 'Avg. Mastery', value: mastery.length ? `${avgAccuracy}%` : '0%', icon: Target, color: '#a78bfa' },
+    { label: 'Study Streak', value: stats.streak || '0d', icon: Zap, color: '#f59e0b' },
   ];
 
   const COLORS = ['#6366f1', '#22d3ee', '#a78bfa', '#f472b6', '#10b981', '#f59e0b'];
@@ -61,6 +88,10 @@ export default function Dashboard({ user }) {
         <h2 style={{ fontSize: '1.8rem', fontWeight: 800 }}>Welcome back, {user?.name || 'Student'}! 👋</h2>
         <p style={{ color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>Here is what's happening with your study progress.</p>
       </header>
+
+      {mastery.length === 0 && !loading && (
+        <OnboardingWelcome onUploadClick={() => onSwitchView('library')} />
+      )}
 
       <div className="dashboard-stats-row">
         {STATS_CARDS.map((stat) => (
@@ -85,12 +116,10 @@ export default function Dashboard({ user }) {
             Loading mastery data...
           </div>
         ) : mastery.length === 0 ? (
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', padding: '1rem 0' }}>
-            No topics tracked yet. Upload study materials and take quizzes to build your mastery profile.
-          </div>
+          <div className="empty-mini-state">No topic data yet</div>
         ) : (
           <div className="mastery-list">
-            {mastery.slice(0, 6).map((item, idx) => (
+            {mastery.slice(0, 3).map((item) => (
               <div key={item.topic} className="mastery-item">
                 <div className="mastery-info">
                   <span className="mastery-name">{item.topic}</span>
@@ -99,7 +128,7 @@ export default function Dashboard({ user }) {
                 <div className="progress-track">
                   <div
                     className="progress-fill"
-                    style={{ width: `${item.mastery_score}%`, backgroundColor: COLORS[idx % COLORS.length] }}
+                    style={{ width: `${item.mastery_score}%`, background: item.mastery_score > 70 ? '#10b981' : '#6366f1' }}
                   />
                 </div>
               </div>
@@ -116,26 +145,19 @@ export default function Dashboard({ user }) {
         {loading ? (
           <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', padding: '0.5rem 0' }}>Loading...</div>
         ) : recommendations.length === 0 ? (
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', padding: '0.5rem 0' }}>
-            Keep studying to unlock personalised recommendations.
-          </div>
+          <div className="empty-mini-state">Upload files to get AI insights</div>
         ) : (
           <div className="recent-activities">
-            {recommendations.map((rec, i) => {
-              const priorityColor = rec.priority === 'high' ? '#ef4444' : rec.priority === 'medium' ? '#f59e0b' : '#10b981';
-              return (
-                <div key={i} className="activity-item">
-                  <div className="activity-dot" style={{ backgroundColor: priorityColor }} />
-                  <div className="activity-content">
-                    <div className="activity-title">{rec.topic}</div>
-                    <div className="activity-time">
-                      Mastery: {rec.mastery_score}% · Priority: {rec.priority}
-                    </div>
-                  </div>
-                  <ChevronRight size={16} color="var(--color-text-muted)" />
+            {recommendations.map((rec, i) => (
+              <div key={i} className="activity-item">
+                <div className="activity-dot" />
+                <div className="activity-content">
+                  <p className="activity-title">{rec.type}: {rec.topic}</p>
+                  <p className="activity-time">{rec.reason}</p>
                 </div>
-              );
-            })}
+                <ChevronRight size={14} color="rgba(255,255,255,0.3)" />
+              </div>
+            ))}
           </div>
         )}
       </div>

@@ -29,11 +29,19 @@ export default function App() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [openWindows, setOpenWindows] = useState([]); // Array of window objects { id, title }
   const [userName, setUserName] = useState('Student');
+  const [activeDocument, setActiveDocument] = useState(null);
 
   useEffect(() => {
     // Initial load
     const savedName = localStorage.getItem('sb_displayName');
-    if (savedName) setUserName(savedName);
+    if (savedName) {
+      setUserName(savedName);
+      // AUTO-LOGIN: If user was last in study mode, return there
+      const lastMode = localStorage.getItem('sb_lastMode');
+      if (lastMode === 'study') {
+        setMode('study');
+      }
+    }
 
     // Listen for cross-component setting updates
     const handleSettingsUpdate = () => {
@@ -77,17 +85,23 @@ export default function App() {
   }, []);
 
   const enterStudyMode = () => {
+    localStorage.setItem('sb_lastMode', 'study');
     setMode('study');
     window.scrollTo(0, 0);
   };
 
+  const handleViewDocument = (doc) => {
+    setActiveDocument(doc);
+    setCurrentView('assistant');
+  };
+
   const renderView = () => {
     switch (currentView) {
-      case 'dashboard': return <Dashboard user={{ name: userName }} />;
-      case 'library': return <Library onOpenAI={handleOpenWindow} />;
+      case 'dashboard': return <Dashboard user={{ name: userName }} onSwitchView={setCurrentView} />;
+      case 'library': return <Library onView={handleViewDocument} onOpenAI={handleViewDocument} />;
       case 'progress': return <Progress />;
       case 'settings': return <Settings />;
-      case 'assistant': return <AssistantWorkspace user={{ name: userName }} />;
+      case 'assistant': return <AssistantWorkspace user={{ name: userName }} initialDoc={activeDocument} />;
       default: return <Dashboard user={{ name: userName }} />;
     }
   };
@@ -116,24 +130,17 @@ export default function App() {
         {String(currentFrame + 1).padStart(3, '0')} / {TOTAL_FRAMES}
       </div>
 
-      <Navbar />
+      <Navbar onEnterApp={enterStudyMode} />
 
       <main className="page-wrapper">
-        <HeroSection />
+        <HeroSection onEnterApp={enterStudyMode} />
         
-        {/* Simplified CTA inside Hero logic for demo, or we can just scroll down to actual CTASection */}
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
-          <button className="btn-primary" onClick={enterStudyMode} style={{ fontSize: '1.1rem', padding: '1rem 2.5rem' }}>
-            Open My Study Brain →
-          </button>
-        </div>
-
-        <ProductOverview />
-        <FeaturesSection />
+        <ProductOverview onEnterApp={enterStudyMode} />
+        <FeaturesSection onEnterApp={enterStudyMode} />
         <HowItWorks />
         <TechStack />
         <UseCases />
-        <CTASection />
+        <CTASection onEnterApp={enterStudyMode} />
         
         <div style={{ padding: '4rem 2rem', textAlign: 'center', background: 'rgba(0,0,0,0.8)' }}>
           <h2 className="section-title">Ready to start?</h2>
@@ -142,7 +149,7 @@ export default function App() {
           </button>
         </div>
 
-        <Footer />
+        <Footer onEnterApp={enterStudyMode} />
       </main>
     </>
   );

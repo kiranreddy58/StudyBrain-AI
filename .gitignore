@@ -36,3 +36,10 @@ data/uploads/
 *.njsproj
 *.sln
 *.sw?
+
+# Security
+.env
+*.zip
+*.pem
+/tmp/
+

@@ -1,9 +1,10 @@
 from backend.rag.vector_store import vector_store
 from backend.rag.embedding_model import generate_query_embedding
 
-def retrieve_context(query: str, top_k: int = 5) -> list:
+def retrieve_context(query: str, top_k: int = 5, source: str = None) -> list:
     """
     Retrieves the most relevant document chunks for a given query.
+    If source is provided, filters results to that specific document.
     """
     # 1. Create query embedding
     query_vec = generate_query_embedding(query)
@@ -13,7 +14,15 @@ def retrieve_context(query: str, top_k: int = 5) -> list:
     if len(vector_store.metadata) == 0:
         vector_store.load()
         
-    results = vector_store.search(query_vec, top_k)
+    # Increasing search depth if filtering to ensure we find enough chunks from the target source
+    search_k = top_k * 5 if source else top_k
+    results = vector_store.search(query_vec, search_k)
+    
+    if source:
+        results = [res for res in results if res['metadata'].get('source') == source][:top_k]
+    else:
+        results = results[:top_k]
+        
     return results
 
 def format_context_for_llm(retrieved_results: list) -> str:

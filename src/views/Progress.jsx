@@ -47,20 +47,26 @@ export default function Progress() {
             <h3 className="card-title">Study Consistency</h3>
             <div className="eyebrow-tag"><Calendar size={12} style={{marginRight: '4px'}} /> Last 60 Days</div>
           </div>
-          <div className="heatmap-grid">
-            {heatmapData.map((lvl, i) => (
-              <div key={i} className={`heatmap-cell lvl-${lvl}`} title={`${lvl} sessions`} />
-            ))}
-          </div>
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>
-            <span>Less</span>
-            <div className="heatmap-cell" style={{width: '12px', height: '12px'}} />
-            <div className="heatmap-cell lvl-1" style={{width: '12px', height: '12px'}} />
-            <div className="heatmap-cell lvl-2" style={{width: '12px', height: '12px'}} />
-            <div className="heatmap-cell lvl-3" style={{width: '12px', height: '12px'}} />
-            <div className="heatmap-cell lvl-4" style={{width: '12px', height: '12px'}} />
-            <span>More</span>
-          </div>
+          {heatmapData.length === 0 ? (
+            <div className="empty-mini-state">No study history recorded yet</div>
+          ) : (
+            <>
+              <div className="heatmap-grid">
+                {heatmapData.map((lvl, i) => (
+                  <div key={i} className={`heatmap-cell lvl-${lvl}`} title={`${lvl} sessions`} />
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>
+                <span>Less</span>
+                <div className="heatmap-cell" style={{width: '12px', height: '12px'}} />
+                <div className="heatmap-cell lvl-1" style={{width: '12px', height: '12px'}} />
+                <div className="heatmap-cell lvl-2" style={{width: '12px', height: '12px'}} />
+                <div className="heatmap-cell lvl-3" style={{width: '12px', height: '12px'}} />
+                <div className="heatmap-cell lvl-4" style={{width: '12px', height: '12px'}} />
+                <span>More</span>
+              </div>
+            </>
+          )}
         </div>
 
         {/* What to Study Next (live recommendations) */}

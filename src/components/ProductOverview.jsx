@@ -13,7 +13,7 @@ function useReveal(ref) {
   }, [ref]);
 }
 
-export default function ProductOverview() {
+export default function ProductOverview({ onEnterApp }) {
   const descRef = useRef(null);
   const pointsRef = useRef(null);
   const card1 = useRef(null);
@@ -36,11 +36,11 @@ export default function ProductOverview() {
           <span className="eyebrow-tag">What Is StudyBrain AI?</span>
           <h2 className="section-title">Your AI-Powered<br />Study Companion</h2>
           <p ref={descRef} className="overview-desc">
-            StudyBrain AI is a multi-modal intelligent learning platform inspired
-            by NotebookLM and Perplexity AI. Upload your PDFs, notes, slides,
-            or code files — and the system transforms them into a personalised
-            knowledge engine that answers your questions, generates quizzes,
-            and adapts to your learning level in real time.
+            StudyBrain AI is your comprehensive intelligent learning platform. 
+            Upload your PDFs, lecture notes, slides, or code files — and 
+            transform them into a dedicated personal knowledge engine. 
+            Ask complex questions, generate adaptive quizzes, and stay 
+            ahead with AI-powered insights that grow with your knowledge.
           </p>
           <ul ref={pointsRef} className="overview-points">
             {[

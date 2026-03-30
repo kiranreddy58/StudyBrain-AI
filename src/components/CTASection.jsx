@@ -1,14 +1,13 @@
 import { useEffect, useRef } from 'react';
 import './CTASection.css';
 
-export default function CTASection() {
+export default function CTASection({ onEnterApp }) {
   const titleRef = useRef(null);
   const subRef = useRef(null);
   const actionsRef = useRef(null);
-  const phasesRef = useRef(null);
 
   useEffect(() => {
-    const targets = [titleRef, subRef, actionsRef, phasesRef];
+    const targets = [titleRef, subRef, actionsRef];
     const observers = targets.map((ref) => {
       if (!ref.current) return null;
       const observer = new IntersectionObserver(
@@ -38,15 +37,10 @@ export default function CTASection() {
         </p>
 
         <div ref={actionsRef} className="cta-actions">
-          <a href="#" className="btn-primary">Start for Free →</a>
+          <button onClick={onEnterApp} className="btn-primary">Start for Free →</button>
           <a href="#product" className="btn-ghost">Explore the Platform</a>
         </div>
 
-        <div ref={phasesRef} className="cta-phases">
-          {['Phase 1: UI', 'Phase 2: Ingestion', 'Phase 3: RAG', 'Phase 4: Learning AI', 'Phase 5: Full Copilot'].map((p, i) => (
-            <span key={i} className="phase-badge">{p}</span>
-          ))}
-        </div>
       </div>
     </section>
   );

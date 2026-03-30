@@ -1,67 +1,123 @@
-import json
 import os
+import json
+from datetime import datetime
+from backend.storage.database import get_connection
 
-STORAGE_DIR = "data/processed_documents"
+STORAGE_DIR = "data/processed_documents" # Keep reference for pathing if needed
 
-def save_processed_document(doc_id: str, chunks: list):
+def save_processed_document(doc_id: str, chunks: list, raw_path: str = None):
     """
-    Stores processed chunks as a JSON file.
+    Stores processed chunks in the database, including metadata.
     """
-    if not os.path.exists(STORAGE_DIR):
-        os.makedirs(STORAGE_DIR, exist_ok=True)
+    conn = get_connection()
+    try:
+        # 1. Insert/Update Document Metadata
+        filename = chunks[0].get('source', 'Unknown') if chunks else "Unknown"
+        file_type = filename.split('.')[-1] if '.' in filename else 'unknown'
         
-    file_path = os.path.join(STORAGE_DIR, f"{doc_id}.json")
-    
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(chunks, f, indent=2)
+        conn.execute("""
+            INSERT OR REPLACE INTO documents (id, filename, file_type, raw_path, uploaded_at, processed_status)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+            doc_id, 
+            filename, 
+            file_type, 
+            raw_path, 
+            datetime.now().isoformat(),
+            'completed'
+        ))
         
-    return file_path
+        # 2. Insert Chunks
+        # Clear existing chunks if any (for updates)
+        conn.execute("DELETE FROM document_chunks WHERE doc_id = ?", (doc_id,))
+        
+        for i, chunk in enumerate(chunks):
+            conn.execute("""
+                INSERT INTO document_chunks (doc_id, chunk_index, content, metadata)
+                VALUES (?, ?, ?, ?)
+            """, (
+                doc_id,
+                i,
+                chunk.get("chunk_text") or "",
+                json.dumps({k: v for k, v in chunk.items() if k != "chunk_text"})
+            ))
+            
+        conn.commit()
+    finally:
+        conn.close()
 
-def get_processed_document(doc_id: str) -> list:
+def get_processed_document(doc_id: str) -> dict:
     """
-    Retrieves stored chunks for a document.
+    Retrieves stored document data from the database.
     """
-    file_path = os.path.join(STORAGE_DIR, f"{doc_id}.json")
-    if os.path.exists(file_path):
-        with open(file_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return []
+    conn = get_connection()
+    try:
+        doc = conn.execute("SELECT * FROM documents WHERE id = ?", (doc_id,)).fetchone()
+        if not doc:
+            return {}
+        
+        chunks_rows = conn.execute(
+            "SELECT * FROM document_chunks WHERE doc_id = ? ORDER BY chunk_index ASC", 
+            (doc_id,)
+        ).fetchall()
+        
+        chunks = []
+        for cr in chunks_rows:
+            chunk = json.loads(cr['metadata'])
+            chunk['chunk_text'] = cr['content']
+            chunks.append(chunk)
+            
+        metadata = dict(doc)
+        metadata['type'] = metadata.get('file_type', 'text')
+        
+        return {
+            "metadata": metadata,
+            "chunks": chunks
+        }
+    finally:
+        conn.close()
 
 def list_processed_documents():
     """
-    Lists all processed documents with metadata.
+    Lists all processed documents with metadata from the database.
     """
-    if not os.path.exists(STORAGE_DIR):
-        return []
-    
-    docs = []
-    for f in os.listdir(STORAGE_DIR):
-        if f.endswith(".json"):
-            doc_id = f.replace(".json", "")
-            file_path = os.path.join(STORAGE_DIR, f)
-            try:
-                with open(file_path, "r", encoding="utf-8") as j:
-                    chunks = json.load(j)
-                    if chunks:
-                        # Chunks are flat dicts — source is a direct key
-                        first = chunks[0]
-                        source = first.get('source', doc_id)
-                        # Detect type from metadata
-                        if 'code_type' in first:
-                            doc_type = 'code'
-                        elif first.get('type') == 'image_ocr':
-                            doc_type = 'image'
-                        elif source.lower().endswith('.pdf'):
-                            doc_type = 'pdf'
-                        else:
-                            doc_type = 'text'
-                        docs.append({
-                            "id": doc_id,
-                            "filename": source,
-                            "type": doc_type,
-                            "chunks_count": len(chunks),
-                            "uploaded_at": os.path.getmtime(file_path) * 1000
-                        })
-            except:
-                continue
-    return docs
+    conn = get_connection()
+    try:
+        rows = conn.execute("SELECT * FROM documents ORDER BY uploaded_at DESC").fetchall()
+        docs = []
+        for r in rows:
+            doc = dict(r)
+            # Add chunks_count for compatibility
+            count_row = conn.execute(
+                "SELECT COUNT(*) as cnt FROM document_chunks WHERE doc_id = ?", 
+                (doc['id'],)
+            ).fetchone()
+            doc['chunks_count'] = count_row['cnt']
+            
+            # Map database fields to expected frontend/API names
+            doc['type'] = doc.get('file_type', 'text')
+            if doc.get('uploaded_at'):
+                doc['uploaded_at'] = datetime.fromisoformat(doc['uploaded_at']).timestamp() * 1000
+            
+            docs.append(doc)
+        return docs
+    finally:
+        conn.close()
+
+def delete_document(doc_id: str):
+    """Deletes a document and its chunks from the database."""
+    conn = get_connection()
+    try:
+        conn.execute("DELETE FROM documents WHERE id = ?", (doc_id,))
+        conn.commit()
+    finally:
+        conn.close()
+
+def rename_document(doc_id: str, new_name: str):
+    """Renames a document in the database."""
+    conn = get_connection()
+    try:
+        conn.execute("UPDATE documents SET filename = ? WHERE id = ?", (new_name, doc_id))
+        conn.commit()
+    finally:
+        conn.close()

@@ -77,6 +77,14 @@
   color: var(--color-text-muted);
 }
 
+@media (max-width: 768px) {
+  .usecase-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    max-width: 480px;
+  }
+}
+
 .usecase-quote {
   margin-top: 1rem;
   padding: 0.65rem 0.85rem;

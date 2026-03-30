@@ -30,7 +30,7 @@ function GlassCard({ tag, title, body, children, className = '' }) {
   );
 }
 
-export default function ContentSections() {
+export default function ContentSections({ onEnterApp }) {
   const finaleTitleRef = useRef(null);
   const finaleSubRef = useRef(null);
   const finaleCtaRef = useRef(null);
@@ -119,9 +119,9 @@ export default function ContentSections() {
           <a href="#top" className="btn-primary">
             Replay ↑
           </a>
-          <a href="#" className="btn-ghost">
-            Explore More →
-          </a>
+          <button onClick={onEnterApp} className="btn-ghost">
+            Get Started →
+          </button>
         </div>
       </section>
     </>

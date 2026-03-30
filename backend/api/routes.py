@@ -1,6 +1,9 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi.responses import FileResponse
 import uuid
 import os
+import numpy as np
+from pydantic import BaseModel
 
 from backend.ingestion.file_upload import save_upload_file
 from backend.ingestion.file_detector import detect_file_type
@@ -9,9 +12,10 @@ from backend.parsers.code_parser import parse_code_file
 from backend.ocr.image_ocr import extract_text_from_image
 from backend.processing.text_cleaner import clean_text
 from backend.processing.chunker import chunk_text
-from backend.storage.document_store import save_processed_document, get_processed_document, list_processed_documents
+from backend.storage.document_store import save_processed_document, get_processed_document, list_processed_documents, delete_document, rename_document
 from backend.rag.embedding_model import generate_embeddings
 from backend.rag.vector_store import vector_store
+from backend.api.events import broadcast_update
 
 router = APIRouter()
 
@@ -61,7 +65,7 @@ async def upload_document(file: UploadFile = File(...)):
         
         # 4. Generate Embeddings & Index
         if all_chunks:
-            print("Embedding started...")
+            print("Embedding started for {} chunks...".format(len(all_chunks)))
             # Extract only text for embedding
             chunk_texts = [c['chunk_text'] for c in all_chunks]
             embeddings = generate_embeddings(chunk_texts)
@@ -70,11 +74,19 @@ async def upload_document(file: UploadFile = File(...)):
             # Add to FAISS index
             vector_store.add_chunks(embeddings, all_chunks)
             vector_store.save()
-            print("Indexing done.")
+            print("Indexing done and saved.")
+        else:
+            print("No chunks extracted from document.")
             
-        # 5. Save Processed Data (JSON snapshot)
-        save_processed_document(doc_id, all_chunks)
-        print("Save complete.")
+        # 5. Save Processed Data (JSON snapshot with raw path)
+        print("Saving to SQL database...")
+        save_processed_document(doc_id, all_chunks, raw_path=file_path)
+        print("SQL Save complete.")
+        
+        # 6. Broadcast Update
+        print("Broadcasting update to SSE...")
+        await broadcast_update("DOCUMENT_UPLOADED", {"id": doc_id, "filename": filename})
+        print("Broadcast done.")
         
         return {
             "document_id": doc_id,
@@ -87,7 +99,7 @@ async def upload_document(file: UploadFile = File(...)):
         import traceback
         print("ERROR IN UPLOAD:")
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Ingegion failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Ingestion failed: {str(e)}")
 
 @router.get("/documents")
 async def list_documents():
@@ -95,7 +107,63 @@ async def list_documents():
 
 @router.get("/document/{doc_id}")
 async def get_document(doc_id: str):
-    chunks = get_processed_document(doc_id)
-    if not chunks:
+    data = get_processed_document(doc_id)
+    if not data:
         raise HTTPException(status_code=404, detail="Document not found")
-    return {"id": doc_id, "chunks": chunks}
+    return data
+
+@router.get("/document/{doc_id}/raw")
+async def get_raw_document(doc_id: str):
+    data = get_processed_document(doc_id)
+    if not data:
+        raise HTTPException(status_code=404, detail="Document snapshot not found")
+        
+    if "metadata" not in data or not data["metadata"].get("raw_path"):
+        raise HTTPException(
+            status_code=404, 
+            detail="Raw document path not available (legacy format). Please re-upload or migrate the document."
+        )
+    
+    file_path = data["metadata"]["raw_path"]
+    if not os.path.exists(file_path):
+        # Try to reconstruct path if it was absolute in another environment
+        if os.path.isabs(file_path):
+            basename = os.path.basename(file_path)
+            potential_path = os.path.join("data", "uploads", basename)
+            if os.path.exists(potential_path):
+                file_path = potential_path
+            else:
+                raise HTTPException(status_code=404, detail=f"File missing on server: {basename}")
+        else:
+            raise HTTPException(status_code=404, detail="File missing on server")
+        
+    return FileResponse(file_path)
+
+@router.delete("/document/{doc_id}")
+async def remove_document(doc_id: str):
+    delete_document(doc_id)
+    await broadcast_update("DOCUMENT_DELETED", {"id": doc_id})
+    return {"status": "deleted"}
+
+class RenameRequest(BaseModel):
+    new_name: str
+
+@router.patch("/document/{doc_id}")
+async def update_document_name(doc_id: str, request: RenameRequest):
+    rename_document(doc_id, request.new_name)
+    await broadcast_update("DOCUMENT_RENAMED", {"id": doc_id, "new_name": request.new_name})
+    return {"status": "renamed"}
+
+@router.get("/search")
+async def global_search(query: str, top_k: int = 5):
+    if not query:
+        raise HTTPException(status_code=400, detail="Query cannot be empty")
+    
+    # Generate query embedding
+    query_vector = generate_embeddings([query])[0]
+    query_vector = np.array([query_vector]).astype('float32')
+    
+    # Search vector store
+    results = vector_store.search(query_vector, top_k=top_k)
+    
+    return {"results": results}

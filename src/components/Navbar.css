@@ -93,6 +93,35 @@
   box-shadow: 0 0 36px rgba(99, 102, 241, 0.5);
 }
 
-@media (max-width: 640px) {
-  .navbar-links { display: none; }
+.navbar-toggle {
+  display: none;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+  .navbar-links {
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .navbar-links {
+    display: none;
+  }
+  
+  .navbar-cta {
+    display: none;
+  }
+
+  .navbar-toggle {
+    display: flex;
+  }
 }

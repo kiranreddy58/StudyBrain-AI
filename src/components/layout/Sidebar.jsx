@@ -33,16 +33,7 @@ export default function Sidebar({ currentView, onViewChange }) {
       </nav>
 
       <div className="sidebar-footer">
-        <div className="upgrade-card">
-          <div className="upgrade-title">Pro Plan</div>
-          <p className="upgrade-desc">Unlock unlimited AI assistant windows & documents.</p>
-          <button className="btn-upgrade">
-            <Sparkles size={14} style={{ marginRight: '6px' }} />
-            Upgrade Now
-          </button>
-        </div>
-        
-        <button className="sidebar-link support-btn" style={{ marginTop: '1rem' }}>
+        <button className="sidebar-link support-btn" style={{ marginTop: 'auto' }}>
           <div className="sidebar-link-icon"><HelpCircle size={20} /></div>
           <span>Support</span>
         </button>

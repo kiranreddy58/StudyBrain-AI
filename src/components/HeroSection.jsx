@@ -1,6 +1,6 @@
 import './HeroSection.css';
 
-export default function HeroSection() {
+export default function HeroSection({ onEnterApp }) {
   return (
     <section className="hero-section" id="top">
       <div className="hero-badge">
@@ -19,22 +19,22 @@ export default function HeroSection() {
       </p>
 
       <div className="hero-actions">
-        <a href="#cta" className="btn-primary">Start Studying Free →</a>
+        <button onClick={onEnterApp} className="btn-primary">Start Studying Free →</button>
         <a href="#how" className="btn-ghost">See How It Works</a>
       </div>
 
       <div className="hero-stats">
         <div className="hero-stat">
-          <span className="hero-stat-value">192</span>
-          <span className="hero-stat-label">Frame Cinematic Intro</span>
+          <span className="hero-stat-value">50k+</span>
+          <span className="hero-stat-label">Documents Processed</span>
         </div>
         <div className="hero-stat">
-          <span className="hero-stat-value">5</span>
-          <span className="hero-stat-label">AI-Powered Phases</span>
+          <span className="hero-stat-value">Instant</span>
+          <span className="hero-stat-label">AI Explanations</span>
         </div>
         <div className="hero-stat">
-          <span className="hero-stat-value">∞</span>
-          <span className="hero-stat-label">Study Topics</span>
+          <span className="hero-stat-value">100%</span>
+          <span className="hero-stat-label">Grounded Answers</span>
         </div>
       </div>
 

@@ -29,7 +29,9 @@
 }
 
 /* Text side */
-.overview-text {}
+.overview-text {
+  flex: 1;
+}
 
 .overview-desc {
   font-size: clamp(0.95rem, 1.8vw, 1.05rem);
@@ -137,7 +139,9 @@
 .mini-card-icon.violet { background: rgba(167, 139, 250, 0.15); }
 .mini-card-icon.green  { background: rgba(52, 211, 153, 0.15); }
 
-.mini-card-body {}
+.mini-card-body {
+  flex: 1;
+}
 
 .mini-card-label {
   font-size: 0.88rem;
@@ -152,6 +156,30 @@
   font-weight: 300;
 }
 
-@media (max-width: 768px) {
-  .overview-inner { grid-template-columns: 1fr; }
+@media (max-width: 900px) {
+  .overview-inner { 
+    grid-template-columns: 1fr; 
+    gap: 3.5rem;
+    text-align: center;
+  }
+  
+  .overview-desc {
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .overview-points {
+    align-items: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .overview-visual {
+    padding: 1.5rem;
+  }
+  
+  .mini-card {
+    padding: 0.75rem 1rem;
+  }
 }

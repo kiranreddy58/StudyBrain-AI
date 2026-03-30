@@ -14,6 +14,7 @@ from backend.learning.learning_tracker import record_activity
 from backend.learning.mastery_model import get_all_mastery, estimate_topic_mastery
 from backend.learning.recommendation_engine import recommend_next_topics
 from backend.learning.difficulty_adjuster import adjust_question_difficulty
+from backend.api.events import broadcast_update
 
 router = APIRouter()
 
@@ -38,6 +39,11 @@ async def track_learning(activity: LearningActivity):
     )
     mastery = estimate_topic_mastery(activity.topic)
     difficulty = adjust_question_difficulty(activity.topic)
+
+    await broadcast_update("LEARNING_ACTIVITY_RECORDED", {
+        "topic": activity.topic,
+        "mastery": mastery
+    })
 
     return {
         "status": "recorded",

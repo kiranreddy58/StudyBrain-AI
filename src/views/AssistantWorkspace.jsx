@@ -1,213 +1,262 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './AssistantWorkspace.css';
-import { Send, Paperclip, Sparkles, BookOpen, Clock, Brain, HelpCircle } from 'lucide-react';
+import { Sparkles, BookOpen, Brain, FileText, ChevronRight, Layout, Settings, History } from 'lucide-react';
+import QuizPlayer from '../components/QuizPlayer';
+import FileViewer from '../components/FileViewer';
+import ExplainModule from '../components/ExplainModule';
+import AssignmentModule from '../components/AssignmentModule';
 
 const API = '/api';
 
-// Window modes and their backend endpoints
 const MODES = [
-  { key: 'qa',       label: 'Q&A',           icon: HelpCircle, endpoint: '/ai/ask',             field: 'question' },
-  { key: 'quiz',     label: 'Quiz',          icon: Brain,      endpoint: '/copilot/generate-quiz', field: 'topic'    },
-  { key: 'explain',  label: 'Explain',       icon: Sparkles,   endpoint: '/copilot/explain',      field: 'concept'  },
-  { key: 'help',     label: 'Assignment',    icon: BookOpen,   endpoint: '/copilot/assignment-help', field: 'question' },
+  { key: 'explain',  label: 'Explain',       icon: Sparkles },
+  { key: 'help',     label: 'Assignment',    icon: BookOpen },
+  { key: 'quiz',     label: 'Quiz',          icon: Brain    },
+  { key: 'history',  label: 'History',       icon: History  },
 ];
-
-async function callBackend(mode, userText) {
-  const payload = { [mode.field]: userText };
-  // Quiz also needs num_questions
-  if (mode.key === 'quiz') payload.num_questions = 5;
-
-  const res = await fetch(`${API}${mode.endpoint}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || `Server error ${res.status}`);
-  }
-  const data = await res.json();
-  // Normalise different response shapes into a single string
-  return data.answer || data.explanation || data.guidance || data.quiz || 'No response from AI.';
-}
-
-export default function AssistantWorkspace({ user }) {
+export default function AssistantWorkspace({ user, initialDoc }) {
   const [activeMode, setActiveMode] = useState(MODES[0]);
-  const [messages, setMessages] = useState([
-    { role: 'ai', content: `Hello ${user?.name || 'there'}! I'm your StudyBrain AI. Ask me anything, request a quiz, or get a concept explained — I'll search your uploaded study materials for the best answer.` },
-  ]);
-  const [input, setInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const [aiStatus, setAiStatus] = useState({ provider: 'Checking...', available: false });
+  const [library, setLibrary] = useState([]);
+  const [selectedDoc, setSelectedDoc] = useState(initialDoc || null);
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [activeQuiz, setActiveQuiz] = useState(null);
+  const [interHistory, setInterHistory] = useState([]);
 
-  useState(() => {
-    async function checkStatus() {
-      try {
-        const res = await fetch(`${API}/status`);
-        if (res.ok) {
-          const data = await res.json();
-          setAiStatus({ provider: data.llm_provider, available: data.ollama_available });
-        }
-      } catch (err) {
-        setAiStatus({ provider: 'Offline', available: false });
-      }
-    }
-    checkStatus();
-  }, []);
-
-  const handleSend = async () => {
-    const query = input.trim();
-    if (!query) return;
-
-    const preferredProvider = localStorage.getItem('sb_model') || 'auto';
-    console.log("AI Assistant: Sending query:", query, "Mode:", activeMode.key, "Provider:", preferredProvider);
-
-    const userMsg = { role: 'user', content: query };
-    setMessages(prev => [...prev, userMsg]);
-    setInput('');
-    setIsTyping(true);
-
+  const fetchLibrary = async () => {
     try {
-      const payload = { [activeMode.field]: query, provider: preferredProvider };
-      if (activeMode.key === 'quiz') payload.num_questions = 5;
-
-      const res = await fetch(`${API}${activeMode.endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail || `Server error ${res.status}`);
+      const res = await fetch(`${API}/documents`);
+      if (res.ok) {
+        const data = await res.json();
+        setLibrary(data.documents || []);
+        if (!selectedDoc && data.documents?.length > 0) {
+          setSelectedDoc(data.documents[0]);
+        }
       }
-      const data = await res.json();
-      const answer = data.answer || data.explanation || data.guidance || data.quiz || 'No response from AI.';
-      
-      console.log("AI Assistant: Received answer:", answer);
-      setMessages(prev => [...prev, { role: 'ai', content: answer }]);
     } catch (err) {
-      console.error("AI Assistant: Error:", err);
-      setMessages(prev => [...prev, {
-        role: 'ai',
-        content: `⚠️ Could not reach the StudyBrain backend. Make sure the server is running.\n\nError: ${err.message}`,
-      }]);
-    } finally {
-      setIsTyping(false);
+      console.error("Failed to fetch library:", err);
     }
   };
 
-  return (
-    <div className="assistant-workspace">
-      <div className="chat-main">
-        <header className="chat-header">
-          <div className="settings-title">
-            <Sparkles size={18} color="var(--color-accent)" />
-            &nbsp;AI Copilot
-          </div>
-          {/* Mode selector */}
-          <div style={{ display: 'flex', gap: '0.4rem' }}>
-            {MODES.map(m => (
-              <button
-                key={m.key}
-                onClick={() => setActiveMode(m)}
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: '8px',
-                  fontSize: '0.73rem',
-                  fontWeight: 600,
-                  border: 'none',
-                  cursor: 'pointer',
-                  background: activeMode.key === m.key ? 'var(--color-accent)' : 'rgba(255,255,255,0.06)',
-                  color: activeMode.key === m.key ? '#fff' : 'var(--color-text-muted)',
-                  transition: 'all 0.2s',
-                }}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
-        </header>
+  const fetchHistory = async () => {
+    try {
+      const res = await fetch(`/api/ai/history?limit=20`);
+      if (res.ok) {
+        const data = await res.json();
+        setInterHistory(data.history || []);
+      }
+    } catch (err) {
+      console.error("History fetch error:", err);
+    }
+  };
 
-        <div className="chat-messages">
-          {messages.map((m, i) => (
-            <div key={i} className={`message-bubble ${m.role}`} style={{ whiteSpace: 'pre-wrap' }}>
-              {m.content}
-            </div>
-          ))}
-          {isTyping && (
-            <div className="message-bubble ai" style={{ opacity: 0.6 }}>
-              Brain is thinking...
-            </div>
-          )}
+  useEffect(() => {
+    fetchLibrary();
+  }, []);
+
+  useEffect(() => {
+    if (showLibrary) fetchLibrary();
+  }, [showLibrary]);
+
+  useEffect(() => {
+    if (activeMode.key === 'history') fetchHistory();
+  }, [activeMode]);
+
+  const handleStartQuiz = async () => {
+    if (!selectedDoc) return;
+    try {
+      const preferredProvider = localStorage.getItem('sb_model') || 'auto';
+      const res = await fetch(`${API}/copilot/generate-quiz`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: selectedDoc.filename,
+          filename: selectedDoc.filename,
+          num_questions: 5,
+          provider: preferredProvider
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setActiveQuiz(data.quiz);
+      }
+    } catch (err) {
+      console.error("Quiz Error:", err);
+      alert("Failed to generate quiz.");
+    }
+  };
+
+  const handleQuizComplete = async (score) => {
+    setActiveQuiz(null);
+    if (!selectedDoc) return;
+
+    try {
+      await fetch(`${API}/learning/track-learning`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: selectedDoc.filename,
+          quiz_score: score,
+          quiz_total: activeQuiz.length,
+          study_time_minutes: 5, // Estimate or track actual
+          mistakes: activeQuiz.length - score
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to record quiz activity:", err);
+    }
+  };
+
+  const renderModule = () => {
+    if (activeMode.key === 'quiz' && activeQuiz) {
+      return (
+        <div className="quiz-container">
+          <QuizPlayer 
+            quiz={activeQuiz} 
+            onComplete={handleQuizComplete}
+            onExit={() => setActiveQuiz(null)}
+          />
         </div>
+      );
+    }
 
-        <footer className="chat-footer">
-          <div className="input-container">
-            <Paperclip size={20} color="var(--color-text-muted)" style={{ cursor: 'pointer' }} />
-            <input
-              type="text"
-              id="ai-chat-input"
-              className="chat-input"
-              placeholder={
-                activeMode.key === 'quiz'    ? 'Enter a topic to generate a quiz...' :
-                activeMode.key === 'explain' ? 'Enter a concept to explain...' :
-                activeMode.key === 'help'    ? 'Paste your assignment question...' :
-                                              'Ask anything about your study materials...'
-              }
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            />
-            <button
-              id="ai-send-btn"
-              className="btn-primary"
-              style={{ padding: '0.6rem 1.25rem', borderRadius: '10px' }}
-              onClick={handleSend}
-              disabled={isTyping}
-            >
-              <Send size={16} />
+    if (activeMode.key === 'explain') return <ExplainModule selectedFile={selectedDoc} />;
+    if (activeMode.key === 'help') return <AssignmentModule selectedFile={selectedDoc} />;
+    
+    if (activeMode.key === 'quiz') {
+      return (
+        <div className="quiz-setup-view">
+          <div className="setup-card">
+            <Brain size={48} color="var(--color-accent)" />
+            <h2>Ready to Test Your Knowledge?</h2>
+            <p>I'll generate a 5-question interactive quiz based on <strong>{selectedDoc?.filename || 'your document'}</strong>.</p>
+            <button className="btn-primary" onClick={handleStartQuiz}>
+              Start Practice Quiz
             </button>
           </div>
-        </footer>
-      </div>
+        </div>
+      );
+    }
 
-      <div className="assistant-sidebar">
-        <div className="context-card">
-          <h3 className="card-title"><BookOpen size={16} style={{ marginRight: '8px' }} />Active Mode</h3>
-          <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: '1rem' }}>
-            <strong style={{ color: 'var(--color-accent)' }}>{activeMode.label}</strong> mode is active.
-            {activeMode.key === 'qa'      && ' Ask questions about your documents.'}
-            {activeMode.key === 'quiz'    && ' Enter a topic to generate practice questions.'}
-            {activeMode.key === 'explain' && ' Enter a concept to get a clear explanation.'}
-            {activeMode.key === 'help'    && ' Paste an assignment question for step-by-step guidance.'}
-          </p>
-          <div className="recent-activities" style={{ marginTop: '1.5rem' }}>
-            <div className="activity-item">
-              <div className="activity-dot" style={{ backgroundColor: aiStatus.available ? '#10b981' : '#f59e0b' }} />
-              <div className="activity-content">
-                <div className="activity-title" style={{ fontSize: '0.75rem' }}>
-                  AI Status: {aiStatus.provider} {aiStatus.available ? '(Local)' : '(Cloud)'}
+    if (activeMode.key === 'history') {
+      return (
+        <div className="history-view">
+          <div className="history-header">
+            <h4>Recent Interactions</h4>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <p>Your past AI study sessions and queries.</p>
+              <button 
+                className="btn-ghost" 
+                style={{ fontSize: '0.75rem', padding: '4px 8px' }}
+                onClick={async () => {
+                   await fetch(`/api/ai/history`, { method: 'DELETE' });
+                   fetchHistory();
+                }}
+              >
+                Clear All
+              </button>
+            </div>
+          </div>
+          <div className="history-list">
+            {interHistory.length === 0 ? (
+              <div className="empty-history">
+                <History size={32} opacity={0.3} />
+                <p>No session history yet. Start by asking AI or generating a quiz!</p>
+              </div>
+            ) : (
+              interHistory.map((item, idx) => (
+                <div key={item.id || idx} className={`history-item ${item.role}`}>
+                  <div className="history-role">{item.role.toUpperCase()}</div>
+                  <div className="history-text">
+                    {item.content.length > 200 ? item.content.substring(0, 200) + '...' : item.content}
+                  </div>
+                  <div className="history-time">{new Date(item.timestamp).toLocaleString()}</div>
                 </div>
-              </div>
-            </div>
-            <div className="activity-item">
-              <div className="activity-dot" style={{ backgroundColor: '#3b82f6' }} />
-              <div className="activity-content">
-                <div className="activity-title" style={{ fontSize: '0.75rem' }}>FAISS Vector Search</div>
-              </div>
-            </div>
+              ))
+            )}
           </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div className="assistant-modular-hub">
+      {/* 1. Left Sidebar: Module Selection */}
+      <nav className="hub-sidebar">
+        <div className="hub-logo">
+          <div className="logo-dot" />
+          <span>StudyBrain</span>
+        </div>
+        
+        <div className="hub-nav-group">
+          <span className="hub-nav-label">Modules</span>
+          {MODES.map(mode => (
+            <button 
+              key={mode.key}
+              className={`hub-nav-item ${activeMode.key === mode.key ? 'active' : ''}`}
+              onClick={() => { setActiveMode(mode); setActiveQuiz(null); }}
+            >
+              <mode.icon size={20} />
+              <span>{mode.label}</span>
+            </button>
+          ))}
         </div>
 
-        <div className="context-card" style={{ flex: '0 0 auto' }}>
-          <h3 className="card-title"><Clock size={16} style={{ marginRight: '8px' }} />Session</h3>
-          <div style={{ fontSize: '0.75rem', marginTop: '1rem', color: 'var(--color-text-muted)' }}>
-            {messages.filter(m => m.role === 'user').length} questions asked this session.
+        <div className="hub-nav-group" style={{ marginTop: 'auto' }}>
+          <button className="hub-nav-item">
+            <Settings size={18} />
+            <span>Settings</span>
+          </button>
+        </div>
+      </nav>
+
+      {/* 2. Middle: Persistent Document Viewer (70%) */}
+      <div className="hub-viewer-area">
+        <FileViewer 
+          selectedFile={selectedDoc} 
+          onSelectFile={() => setShowLibrary(true)} 
+        />
+      </div>
+
+      {/* 3. Right: AI Assistant Panel (30%) */}
+      <aside className="hub-ai-panel">
+        <div className="ai-panel-header">
+          <activeMode.icon size={18} className="mode-icon" />
+          <h3>AI {activeMode.label}</h3>
+        </div>
+        <div className="ai-panel-content">
+          {renderModule()}
+        </div>
+      </aside>
+
+      {/* Library Picker Modal */}
+      {showLibrary && (
+        <div className="modal-overlay" onClick={() => setShowLibrary(false)}>
+          <div className="library-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Switch Document</h3>
+              <p>Select a file to update your study session context.</p>
+            </div>
+            <div className="modal-grid">
+              {library.map(doc => (
+                <div 
+                  key={doc.id} 
+                  className={`modal-doc-card ${selectedDoc?.id === doc.id ? 'selected' : ''}`}
+                  onClick={() => { setSelectedDoc(doc); setShowLibrary(false); }}
+                >
+                  <FileText size={24} />
+                  <div className="modal-doc-info">
+                    <h4>{doc.filename}</h4>
+                    <span>{(doc.type || 'text').toUpperCase()} • {doc.chunks_count} chunks</span>
+                  </div>
+                  {selectedDoc?.id === doc.id && <ChevronRight size={16} color="var(--color-accent)" />}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

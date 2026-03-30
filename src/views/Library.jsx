@@ -13,15 +13,24 @@ const getIcon = (type) => {
   }
 };
 
-export default function Library({ onOpenAI }) {
+export default function Library({ onOpenAI, onView }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [documents, setDocuments] = useState([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Fetch documents on mount
+  // Fetch documents on mount + SSE
   useEffect(() => {
     fetchDocuments();
+
+    const eventSource = new EventSource(`${API}/events`);
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type.startsWith("DOCUMENT_")) {
+        fetchDocuments();
+      }
+    };
+    return () => eventSource.close();
   }, []);
 
   const fetchDocuments = async () => {
@@ -33,6 +42,31 @@ export default function Library({ onOpenAI }) {
       }
     } catch (err) {
       console.error("Failed to fetch documents:", err);
+    }
+  };
+
+  const handleDelete = async (docId) => {
+    if (!confirm("Are you sure you want to delete this module?")) return;
+    try {
+      const res = await fetch(`${API}/document/${docId}`, { method: 'DELETE' });
+      if (res.ok) fetchDocuments();
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
+  };
+
+  const handleRename = async (docId, currentName) => {
+    const newName = prompt("Enter new name:", currentName);
+    if (!newName || newName === currentName) return;
+    try {
+      const res = await fetch(`${API}/document/${docId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ new_name: newName }),
+      });
+      if (res.ok) fetchDocuments();
+    } catch (err) {
+      console.error("Rename error:", err);
     }
   };
 
@@ -49,10 +83,7 @@ export default function Library({ onOpenAI }) {
         method: 'POST',
         body: formData,
       });
-      if (res.ok) {
-        // Re-fetch document list after successful upload
-        await fetchDocuments();
-      } else {
+      if (!res.ok) {
         const err = await res.json();
         alert(`Upload failed: ${err.detail || res.status}`);
       }
@@ -95,7 +126,7 @@ export default function Library({ onOpenAI }) {
           onChange={handleFileSelect} 
         />
 
-        <button className="btn-primary" onClick={triggerUpload} disabled={uploading} style={{ padding: '0.6rem 1.25rem', fontSize: '0.85rem' }}>
+        <button className="btn-primary" onClick={triggerUpload} disabled={uploading}>
           <Plus size={16} style={{ marginRight: '6px' }} />
           {uploading ? 'Uploading...' : 'New Module'}
         </button>
@@ -130,22 +161,23 @@ export default function Library({ onOpenAI }) {
             <div className="doc-type-icon">
               {getIcon(doc.type || 'text')}
             </div>
-            <div className="doc-title" title={doc.filename || doc.id}>
+            <div className="doc-title" title={doc.filename || doc.id} onClick={() => handleRename(doc.id, doc.filename)}>
               {doc.filename || ((doc.id).substring(0, 15) + '...')}
             </div>
             <div className="doc-meta">
-              <span>{new Date(doc.uploaded_at || Date.now()).toLocaleDateString() || 'Today'}</span>
-              <span>{doc.chunks_count ? `${doc.chunks_count} chunks` : 'Indexed'}</span>
+              <span>{new Date(doc.uploaded_at).toLocaleDateString()}</span>
+              <span>{doc.chunks_count || 0} chunks</span>
             </div>
             
             <div className="doc-actions">
-              <button className="btn-doc-action" onClick={() => alert("Viewing raw file feature coming soon!")}>
-                <Eye size={14} />
-                View
+              <button className="btn-doc-action" onClick={() => onView(doc)}>
+                <Eye size={14} /> View
               </button>
-              <button className="btn-doc-action" onClick={() => onOpenAI(doc.filename || doc.id)}>
-                <MessageCircle size={14} />
-                Ask AI
+              <button className="btn-doc-action" onClick={() => onOpenAI(doc)}>
+                <MessageCircle size={14} /> Ask
+              </button>
+              <button className="btn-doc-action delete" onClick={() => handleDelete(doc.id)} style={{ color: '#ef4444' }}>
+                Delete
               </button>
             </div>
           </div>

@@ -29,7 +29,7 @@ function useReveal(refs) {
   }, [refs]);
 }
 
-export default function FeaturesSection() {
+export default function FeaturesSection({ onEnterApp }) {
   const cardRefs = FEATURES.map(() => useRef(null));
 
   useReveal(cardRefs);

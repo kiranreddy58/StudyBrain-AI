@@ -9,17 +9,23 @@ export default function Settings() {
   const [model, setModel] = useState('StudyBrain Ultra (Gemini Flash)');
   const [saved, setSaved] = useState(false);
 
-  // Load from local storage on mount
+  // Load from database on mount
   useEffect(() => {
-    const savedName = localStorage.getItem('sb_displayName');
-    const savedEmail = localStorage.getItem('sb_email');
-    const savedModel = localStorage.getItem('sb_model');
-    const savedToggles = localStorage.getItem('sb_toggles');
-
-    if (savedName) setDisplayName(savedName);
-    if (savedEmail) setEmail(savedEmail);
-    if (savedModel) setModel(savedModel);
-    if (savedToggles) setActiveToggles(JSON.parse(savedToggles));
+    async function loadSettings() {
+      try {
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+          const { settings } = await res.json();
+          if (settings.displayName) setDisplayName(settings.displayName);
+          if (settings.email) setEmail(settings.email);
+          if (settings.model) setModel(settings.model);
+          if (settings.toggles) setActiveToggles(settings.toggles);
+        }
+      } catch (err) {
+        console.error("Failed to load settings from DB:", err);
+      }
+    }
+    loadSettings();
   }, []);
 
   const toggle = (id) => {
@@ -28,17 +34,44 @@ export default function Settings() {
     );
   };
 
-  const handleSave = () => {
-    localStorage.setItem('sb_displayName', displayName);
-    localStorage.setItem('sb_email', email);
-    localStorage.setItem('sb_model', model);
-    localStorage.setItem('sb_toggles', JSON.stringify(activeToggles));
-    
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-    
-    // Dispatch custom event so App.jsx can instantly read the new name
-    window.dispatchEvent(new Event('sb_settings_updated'));
+  const handleSave = async () => {
+    try {
+      const updates = [
+        fetch('/api/settings/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: 'displayName', value: displayName })
+        }),
+        fetch('/api/settings/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: 'email', value: email })
+        }),
+        fetch('/api/settings/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: 'model', value: model })
+        }),
+        fetch('/api/settings/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: 'toggles', value: JSON.stringify(activeToggles) })
+        })
+      ];
+
+      await Promise.all(updates);
+      
+      // Also update local storage for synchronous reads in other components
+      localStorage.setItem('sb_model', model);
+      localStorage.setItem('sb_displayName', displayName);
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+      window.dispatchEvent(new Event('sb_settings_updated'));
+    } catch (err) {
+      console.error("Save error:", err);
+      alert("Failed to save settings to server.");
+    }
   };
 
   return (
