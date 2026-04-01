@@ -1,5 +1,7 @@
 # StudyBrain AI 🧠
 
+### 🚀 [Live Working Demo](http://18.188.200.96)
+
 StudyBrain AI is a powerful, locally-hosted intelligent learning companion. It transforms your study materials (PDFs, notes, code) into a dynamic knowledge engine.
 
 ## 🚀 Features
