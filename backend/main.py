@@ -20,7 +20,8 @@ async def startup_event():
     init_db()
     
     # Ensure upload directory exists early
-    os.makedirs("data/uploads", exist_ok=True)
+    from backend.ingestion.file_upload import UPLOAD_DIR
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
     
     # Load vector store
     from backend.rag.vector_store import vector_store

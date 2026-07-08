@@ -3,7 +3,10 @@ import shutil
 import uuid
 from fastapi import UploadFile
 
-UPLOAD_DIR = "data/uploads"
+if os.environ.get("VERCEL") == "1":
+    UPLOAD_DIR = "/tmp/uploads"
+else:
+    UPLOAD_DIR = "data/uploads"
 
 async def save_upload_file(upload_file: UploadFile) -> str:
     # Ensure directory exists (should be created by init, but double check)

@@ -2,7 +2,10 @@ import sqlite3
 import os
 from datetime import datetime
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "learning.db")
+if os.environ.get("VERCEL") == "1":
+    DB_PATH = "/tmp/learning.db"
+else:
+    DB_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "learning.db")
 
 def get_connection():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)

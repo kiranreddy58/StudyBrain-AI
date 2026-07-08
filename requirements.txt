@@ -6,8 +6,7 @@ requests
 pymupdf
 pytesseract
 pillow
-sentence-transformers
-faiss-cpu
+numpy
 tiktoken
 python-multipart
 python-dotenv
@@ -15,4 +14,3 @@ groq
 langchain
 langchain-groq
 langchain-community
-chromadb
