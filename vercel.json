@@ -1,32 +1,19 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    },
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python"
+    "version": 2,
+    "routes": [
+          {
+                  "src": "/api/(.*)",
+                  "dest": "api/index.py"
+          },
+          {
+                  "src": "/(.*)",
+                  "dest": "/$1",
+                  "continue": true
+          }
+    ],
+    "functions": {
+          "api/index.py": {
+                  "excludeFiles": "{public/**,src/**,backend/data/**,test_*.py,**/test_*.py,package-lock.json}"
+          }
     }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1",
-      "continue": true
-    }
-  ],
-  "functions": {
-    "api/index.py": {
-      "excludeFiles": "{public/**,src/**,backend/data/**,test_*.py,**/test_*.py,package-lock.json}"
-    }
-  }
 }
