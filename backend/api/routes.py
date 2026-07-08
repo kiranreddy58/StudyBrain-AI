@@ -2,7 +2,6 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import FileResponse
 import uuid
 import os
-import numpy as np
 from pydantic import BaseModel
 
 from backend.ingestion.file_upload import save_upload_file
@@ -161,7 +160,6 @@ async def global_search(query: str, top_k: int = 5):
     
     # Generate query embedding
     query_vector = generate_embeddings([query])[0]
-    query_vector = np.array([query_vector]).astype('float32')
     
     # Search vector store
     results = vector_store.search(query_vector, top_k=top_k)
