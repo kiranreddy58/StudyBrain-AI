@@ -1,7 +1,7 @@
-import numpy as np
 import os
 import requests
 import time
+import random
 
 def _get_local_model():
     try:
@@ -10,9 +10,9 @@ def _get_local_model():
     except ImportError:
         return None
 
-def generate_embeddings(text_list: list) -> np.ndarray:
+def generate_embeddings(text_list: list) -> list:
     if not text_list:
-        return np.array([]).astype('float32')
+        return []
 
     # 1. Try Hugging Face Inference API first (extremely fast, matching local model dimensions)
     try:
@@ -33,9 +33,9 @@ def generate_embeddings(text_list: list) -> np.ndarray:
                 res_data = response.json()
                 if isinstance(res_data, list) and len(res_data) > 0:
                     if isinstance(res_data[0], list):
-                        return np.array(res_data).astype('float32')
+                        return [[float(x) for x in emb] for emb in res_data]
                     elif isinstance(res_data[0], float):
-                        return np.array([res_data]).astype('float32')
+                        return [[float(x) for x in res_data]]
             elif response.status_code == 503:
                 # Model is loading on HF servers, wait a bit and retry
                 err_data = response.json()
@@ -49,29 +49,35 @@ def generate_embeddings(text_list: list) -> np.ndarray:
     except Exception as e:
         print(f"Hugging Face embeddings failed: {e}")
 
-    # 2. Try Gemini Embeddings API if key is available
+    # 2. Try Gemini Embeddings API (Direct REST call to avoid google-generativeai dependency)
     api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
     if api_key:
         try:
-            import google.generativeai as genai
-            genai.configure(api_key=api_key)
-            result = genai.embed_content(
-                model="models/text-embedding-004",
-                content=text_list,
-                task_type="retrieval_document"
-            )
-            if "embedding" in result:
-                embeddings = [e['values'] for e in result['embedding']]
-                return np.array(embeddings).astype('float32')
+            # Batch embedding call
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:batchEmbedContents?key={api_key}"
+            requests_payload = {
+                "requests": [
+                    {
+                        "model": "models/text-embedding-004",
+                        "content": {"parts": [{"text": text}]}
+                    } for text in text_list
+                ]
+            }
+            response = requests.post(url, json=requests_payload, timeout=15)
+            if response.status_code == 200:
+                res_data = response.json()
+                if "embeddings" in res_data:
+                    return [[float(x) for x in e["values"]] for e in res_data["embeddings"]]
         except Exception as e:
-            print(f"Gemini embeddings failed: {e}")
+            print(f"Gemini embeddings REST call failed: {e}")
 
     # 3. Fallback to local sentence-transformers if installed (e.g. for local dev)
     local_model = _get_local_model()
     if local_model is not None:
         try:
             embeddings = local_model.encode(text_list)
-            return np.array(embeddings).astype('float32')
+            # convert from numpy array to python list
+            return [[float(x) for x in emb] for emb in embeddings.tolist()]
         except Exception as e:
             print(f"Local sentence-transformers embedding failed: {e}")
 
@@ -80,13 +86,13 @@ def generate_embeddings(text_list: list) -> np.ndarray:
     dim = 384
     dummy = []
     for text in text_list:
-        state = np.random.RandomState(abs(hash(text)) % (2**32))
-        dummy.append(state.randn(dim))
-    return np.array(dummy).astype('float32')
+        random.seed(abs(hash(text)) % (2**32))
+        dummy.append([random.gauss(0, 1) for _ in range(dim)])
+    return dummy
 
-def generate_query_embedding(query: str) -> np.ndarray:
+def generate_query_embedding(query: str) -> list:
     """
     Converts a single query string into an embedding vector.
     """
-    return generate_embeddings([query])
-
+    embeddings = generate_embeddings([query])
+    return embeddings[0] if embeddings else []
