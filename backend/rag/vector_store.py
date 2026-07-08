@@ -1,4 +1,3 @@
-import numpy as np
 import os
 import json
 
@@ -12,43 +11,41 @@ else:
 class VectorStore:
     def __init__(self, dimension: int = 384):
         self.dimension = dimension
-        self.embeddings = None  # 2D numpy array of shape (N, dimension)
+        self.embeddings = []  # List of lists of floats
         self.metadata = []
 
-    def add_chunks(self, embeddings: np.ndarray, chunk_metadata: list):
+    def add_chunks(self, embeddings: list, chunk_metadata: list):
         """
         Adds embeddings and their corresponding metadata to the store.
         """
-        if embeddings.shape[0] == 0:
+        if not embeddings:
             return
             
         # Update dimension dynamically based on input embeddings
-        self.dimension = embeddings.shape[1]
+        self.dimension = len(embeddings[0])
         
-        if self.embeddings is None or self.embeddings.shape[0] == 0:
-            self.embeddings = embeddings.copy()
-        else:
-            self.embeddings = np.vstack([self.embeddings, embeddings])
-            
+        self.embeddings.extend(embeddings)
         self.metadata.extend(chunk_metadata)
 
-    def search(self, query_embedding: np.ndarray, top_k: int = 5):
+    def search(self, query_embedding: list, top_k: int = 5):
         """
-        Performs similarity search using numpy L2 distance and returns top-k chunks.
+        Performs similarity search using pure Python L2 distance and returns top-k chunks.
         """
-        if self.embeddings is None or self.embeddings.shape[0] == 0 or len(self.metadata) == 0:
+        if not self.embeddings or not self.metadata or not query_embedding:
             return []
             
-        # query_embedding shape could be (1, dimension) or (dimension,)
-        # Flatten to (dimension,) to ensure correct broadcasting
-        q_vec = query_embedding.reshape(-1)
+        # Ensure query_embedding is a flat list
+        q_vec = query_embedding
         
-        # Calculate L2 distance: sum((a - b)^2) along rows (axis 1)
-        distances = np.sum((self.embeddings - q_vec) ** 2, axis=1)
+        # Calculate L2 distance: sum((a - b)^2)
+        distances = []
+        for emb in self.embeddings:
+            dist = sum((x - y) ** 2 for x, y in zip(emb, q_vec))
+            distances.append(dist)
         
         # Get top-k indices sorted by distance ascending
         top_k = min(top_k, len(distances))
-        indices = np.argsort(distances)[:top_k]
+        indices = sorted(range(len(distances)), key=lambda i: distances[i])[:top_k]
         
         results = []
         for idx in indices:
@@ -61,11 +58,12 @@ class VectorStore:
 
     def save(self):
         """
-        Saves the embeddings (as .npy) and metadata (as .json) to disk.
+        Saves the embeddings (as .json) and metadata (as .json) to disk.
         """
         os.makedirs(os.path.dirname(INDEX_FILE), exist_ok=True)
-        if self.embeddings is not None:
-            np.save(INDEX_FILE + ".npy", self.embeddings)
+        # Save embeddings as JSON list
+        with open(INDEX_FILE + ".json", 'w', encoding='utf-8') as f:
+            json.dump(self.embeddings, f)
         with open(METADATA_FILE, 'w', encoding='utf-8') as f:
             json.dump(self.metadata, f, indent=2)
 
@@ -73,38 +71,33 @@ class VectorStore:
         """
         Loads the embeddings and metadata from disk.
         """
+        json_path = INDEX_FILE + ".json"
+        if os.path.exists(json_path) and os.path.exists(METADATA_FILE):
+            try:
+                with open(json_path, 'r', encoding='utf-8') as f:
+                    self.embeddings = json.load(f)
+                with open(METADATA_FILE, 'r', encoding='utf-8') as f:
+                    self.metadata = json.load(f)
+                if self.embeddings and len(self.embeddings) > 0:
+                    self.dimension = len(self.embeddings[0])
+                return True
+            except Exception as e:
+                print(f"Error loading JSON vector store: {e}")
+        
+        # Fallback to load legacy numpy format if numpy is installed
         npy_path = INDEX_FILE + ".npy"
         if os.path.exists(npy_path) and os.path.exists(METADATA_FILE):
             try:
-                self.embeddings = np.load(npy_path)
+                import numpy as np
+                self.embeddings = np.load(npy_path).tolist()
                 with open(METADATA_FILE, 'r', encoding='utf-8') as f:
                     self.metadata = json.load(f)
-                if self.embeddings is not None and len(self.embeddings) > 0:
-                    self.dimension = self.embeddings.shape[1]
+                if self.embeddings and len(self.embeddings) > 0:
+                    self.dimension = len(self.embeddings[0])
                 return True
             except Exception as e:
-                print(f"Error loading numpy vector store: {e}")
-        elif os.path.exists(INDEX_FILE) and os.path.exists(METADATA_FILE):
-            # Fallback to load legacy FAISS index if installed (for local dev consistency)
-            try:
-                import faiss
-                index = faiss.read_index(INDEX_FILE)
-                ntotal = index.ntotal
-                if ntotal > 0:
-                    self.embeddings = np.empty((ntotal, index.d), dtype='float32')
-                    for i in range(ntotal):
-                        self.embeddings[i] = index.reconstruct(i)
-                else:
-                    self.embeddings = np.empty((0, index.d), dtype='float32')
-                
-                with open(METADATA_FILE, 'r', encoding='utf-8') as f:
-                    self.metadata = json.load(f)
-                self.dimension = index.d
-                return True
-            except Exception as e:
-                print(f"Failed to load legacy FAISS index: {e}")
+                print(f"Failed to load legacy numpy index: {e}")
         return False
 
 # Global instance
 vector_store = VectorStore()
-
