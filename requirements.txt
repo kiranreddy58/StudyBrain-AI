@@ -11,6 +11,3 @@ tiktoken
 python-multipart
 python-dotenv
 groq
-langchain
-langchain-groq
-langchain-community
