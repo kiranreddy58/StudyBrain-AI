@@ -1,12 +1,8 @@
 fastapi
 uvicorn
 pydantic
-google-generativeai
 requests
-pymupdf
-pytesseract
-pillow
-numpy
+pypdf
 tiktoken
 python-multipart
 python-dotenv
