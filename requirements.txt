@@ -7,3 +7,6 @@ tiktoken
 python-multipart
 python-dotenv
 groq
+pymongo
+dnspython
+

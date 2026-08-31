@@ -1,8 +1,20 @@
 import json
-from backend.storage.database import get_connection
+from backend.storage.database import get_connection, get_mongo_db
 
 def set_setting(key: str, value: any):
-    """Saves a setting to the database."""
+    """Saves a setting to MongoDB Atlas or SQLite database."""
+    mongo = get_mongo_db()
+    if mongo is not None:
+        try:
+            mongo.settings.update_one(
+                {"key": key},
+                {"$set": {"key": key, "value": value}},
+                upsert=True
+            )
+            return
+        except Exception as e:
+            print(f"MongoDB set_setting error: {e}")
+
     conn = get_connection()
     try:
         val_str = json.dumps(value)
@@ -15,7 +27,17 @@ def set_setting(key: str, value: any):
         conn.close()
 
 def get_setting(key: str, default: any = None):
-    """Retrieves a setting from the database."""
+    """Retrieves a setting."""
+    mongo = get_mongo_db()
+    if mongo is not None:
+        try:
+            doc = mongo.settings.find_one({"key": key}, {"_id": 0})
+            if doc and "value" in doc:
+                return doc["value"]
+            return default
+        except Exception as e:
+            print(f"MongoDB get_setting error: {e}")
+
     conn = get_connection()
     try:
         row = conn.execute("SELECT value FROM settings WHERE key = ?", (key,)).fetchone()
@@ -26,7 +48,15 @@ def get_setting(key: str, default: any = None):
         conn.close()
 
 def get_all_settings():
-    """Retrieves all settings from the database."""
+    """Retrieves all settings."""
+    mongo = get_mongo_db()
+    if mongo is not None:
+        try:
+            cursor = mongo.settings.find({}, {"_id": 0})
+            return {doc["key"]: doc["value"] for doc in cursor if "key" in doc}
+        except Exception as e:
+            print(f"MongoDB get_all_settings error: {e}")
+
     conn = get_connection()
     try:
         rows = conn.execute("SELECT * FROM settings").fetchall()

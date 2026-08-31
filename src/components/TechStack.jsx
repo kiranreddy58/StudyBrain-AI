@@ -3,7 +3,7 @@ import './TechStack.css';
 
 const TECH = [
   { layer: 'Frontend', pills: ['React.js', 'Vite', 'Vanilla CSS', 'Lucide'] },
-  { layer: 'Backend', pills: ['Python', 'FastAPI', 'SQLite', 'JSON Store'] },
+  { layer: 'Backend & Database', pills: ['Python', 'FastAPI', 'MongoDB Atlas Cloud'] },
   { layer: 'Document Processing', pills: ['PyMuPDF', 'Chunking', 'Cleaning'] },
   { layer: 'AI / Embeddings', pills: ['Sentence Transformers', 'all-MiniLM-L6-v2'] },
   { layer: 'Vector Database', pills: ['FAISS', 'Local Storage'] },
