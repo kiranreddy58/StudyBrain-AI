@@ -17,37 +17,29 @@ app = FastAPI(title="StudyBrain AI Backend", version="1.0.0")
 # Initialize database on startup
 @app.on_event("startup")
 async def startup_event():
-    init_db()
-    
-    # Ensure upload directory exists early
-    from backend.ingestion.file_upload import UPLOAD_DIR
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
-    
-    # Load vector store
-    from backend.rag.vector_store import vector_store
-    if vector_store.load():
-        print("Vector store loaded successfully.")
-    else:
-        print("Vector store index not found, starting fresh.")
-        
-    # Pre-load embedding model to avoid hangs during first upload
-    from backend.rag.embedding_model import generate_embeddings
-    print("Pre-loading embedding model...")
-    generate_embeddings(["test"])
-    print("Embedding model ready.")
+    try:
+        init_db()
+        from backend.ingestion.file_upload import UPLOAD_DIR
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
+        from backend.rag.vector_store import vector_store
+        vector_store.load()
+    except Exception as e:
+        print(f"Startup initialization note: {e}")
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 @app.get("/")
+@app.get("/api")
+@app.get("/api/")
 async def root():
-    return {"message": "StudyBrain AI Backend is running"}
+    return {"message": "StudyBrain AI Backend is running", "status": "online"}
 
 app.include_router(events_router, prefix="/api", tags=["Events"])
 app.include_router(ingestion_router, prefix="/api", tags=["Ingestion"])

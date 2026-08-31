@@ -3,14 +3,24 @@ import shutil
 import uuid
 from fastapi import UploadFile
 
-if os.environ.get("VERCEL") == "1":
-    UPLOAD_DIR = "/tmp/uploads"
-else:
-    UPLOAD_DIR = "data/uploads"
+def _get_upload_dir():
+    if os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV"):
+        return "/tmp/uploads"
+    local_dir = "data/uploads"
+    try:
+        os.makedirs(local_dir, exist_ok=True)
+        return local_dir
+    except (OSError, PermissionError):
+        return "/tmp/uploads"
+
+UPLOAD_DIR = _get_upload_dir()
 
 async def save_upload_file(upload_file: UploadFile) -> str:
-    # Ensure directory exists (should be created by init, but double check)
-    if not os.path.exists(UPLOAD_DIR):
+    global UPLOAD_DIR
+    try:
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
+    except (OSError, PermissionError):
+        UPLOAD_DIR = "/tmp/uploads"
         os.makedirs(UPLOAD_DIR, exist_ok=True)
     
     # Generate unique filename

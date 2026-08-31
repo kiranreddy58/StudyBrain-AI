@@ -1,12 +1,18 @@
 import os
 import json
 
-if os.environ.get("VERCEL") == "1":
-    INDEX_FILE = "/tmp/vector_index/study_brain.index"
-    METADATA_FILE = "/tmp/vector_index/metadata.json"
-else:
-    INDEX_FILE = "data/vector_index/study_brain.index"
-    METADATA_FILE = "data/vector_index/metadata.json"
+def _get_vector_paths():
+    if os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV"):
+        return "/tmp/vector_index/study_brain.index", "/tmp/vector_index/metadata.json"
+    local_idx = "data/vector_index/study_brain.index"
+    local_meta = "data/vector_index/metadata.json"
+    try:
+        os.makedirs(os.path.dirname(local_idx), exist_ok=True)
+        return local_idx, local_meta
+    except (OSError, PermissionError):
+        return "/tmp/vector_index/study_brain.index", "/tmp/vector_index/metadata.json"
+
+INDEX_FILE, METADATA_FILE = _get_vector_paths()
 
 class VectorStore:
     def __init__(self, dimension: int = 384):

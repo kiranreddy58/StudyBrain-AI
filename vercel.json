@@ -1,19 +1,13 @@
 {
-    "version": 2,
-    "routes": [
-          {
-                  "src": "/api/(.*)",
-                  "dest": "api/index.py"
-          },
-          {
-                  "src": "/(.*)",
-                  "dest": "/$1",
-                  "continue": true
-          }
-    ],
-    "functions": {
-          "api/index.py": {
-                  "excludeFiles": "{public/**,src/**,backend/data/**,test_*.py,**/test_*.py,package-lock.json}"
-          }
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
     }
+  ]
 }

@@ -2,14 +2,27 @@ import sqlite3
 import os
 from datetime import datetime
 
-if os.environ.get("VERCEL") == "1":
-    DB_PATH = "/tmp/learning.db"
-else:
-    DB_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "learning.db")
+def _get_db_path():
+    if os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV"):
+        return "/tmp/learning.db"
+    local_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "learning.db")
+    try:
+        os.makedirs(os.path.dirname(local_path), exist_ok=True)
+        return local_path
+    except (OSError, PermissionError):
+        return "/tmp/learning.db"
+
+DB_PATH = _get_db_path()
 
 def get_connection():
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
+    global DB_PATH
+    try:
+        os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+        conn = sqlite3.connect(DB_PATH)
+    except (OSError, PermissionError):
+        DB_PATH = "/tmp/learning.db"
+        os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+        conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
