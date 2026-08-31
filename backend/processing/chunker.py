@@ -29,7 +29,6 @@ def chunk_text(text: str, source_file: str, metadata_base: dict = None) -> list:
                 break
         return chunks
     except Exception:
-        # Lightweight word-based chunker fallback
         words = text.split()
         chunk_size = 400
         overlap = 80

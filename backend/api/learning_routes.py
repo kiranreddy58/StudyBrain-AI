@@ -71,7 +71,6 @@ async def topic_mastery():
             "mastery_score": score,
             "level": level,
         })
-    # Sort strongest first for the dashboard
     topics.sort(key=lambda x: x["mastery_score"], reverse=True)
     return {"topics": topics, "total_topics": len(topics)}
 

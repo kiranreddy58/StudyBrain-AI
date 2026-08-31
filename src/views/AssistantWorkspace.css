@@ -1,12 +1,12 @@
 .assistant-modular-hub {
   display: grid;
   grid-template-columns: 200px 1fr 350px;
-  height: calc(100vh - 80px); /* Account for top navbar */
+  height: calc(100vh - 80px); 
   background: #000;
   overflow: hidden;
 }
 
-/* Sidebar */
+
 .hub-sidebar {
   background: #080808;
   border-right: 1px solid rgba(255, 255, 255, 0.05);
@@ -77,14 +77,14 @@
   box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.2);
 }
 
-/* Viewer Area (70%) */
+
 .hub-viewer-area {
   border-right: 1px solid rgba(255, 255, 255, 0.05);
   background: #000;
   overflow: hidden;
 }
 
-/* AI Assistant Panel (30%) */
+
 .hub-ai-panel {
   background: #050505;
   display: flex;
@@ -120,7 +120,7 @@
   flex-direction: column;
 }
 
-/* Shared Module Overrides for Side Panel */
+
 .ai-panel-content .explain-container,
 .ai-panel-content .assignment-container {
   height: 100%;
@@ -128,7 +128,7 @@
   flex-direction: column;
 }
 
-/* Quiz Styling adjustments for side panel if needed */
+
 .ai-panel-content .quiz-container {
   padding: 0;
 }
@@ -143,7 +143,7 @@
   border: none;
 }
 
-/* History View Styles */
+
 .history-view {
   display: flex;
   flex-direction: column;

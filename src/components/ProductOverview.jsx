@@ -31,7 +31,7 @@ export default function ProductOverview({ onEnterApp }) {
   return (
     <section className="overview-section" id="product">
       <div className="overview-inner">
-        {/* Left — text */}
+        {}
         <div className="overview-text">
           <span className="eyebrow-tag">What Is StudyBrain AI?</span>
           <h2 className="section-title">Your AI-Powered<br />Study Companion</h2>
@@ -58,7 +58,7 @@ export default function ProductOverview({ onEnterApp }) {
           </ul>
         </div>
 
-        {/* Right — floating mini-cards */}
+        {}
         <div className="overview-visual">
           <div ref={card1} className="mini-card">
             <div className="mini-card-icon indigo">📄</div>

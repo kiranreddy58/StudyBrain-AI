@@ -9,7 +9,6 @@ CANDIDATE_GROQ_MODELS = [
     "openai/gpt-oss-20b",
     "llama-3.3-70b-versatile"
 ]
-# Filter out None or empty values
 CANDIDATE_GROQ_MODELS = [m for m in CANDIDATE_GROQ_MODELS if m]
 GROQ_MODEL = CANDIDATE_GROQ_MODELS[0]
 
@@ -107,7 +106,6 @@ class StudyBrainLLM:
 
         answer_text = None
 
-        # Call Groq API
         try:
             m_tokens = 4096 if specialized_prompt else 2048
             answer_text = await self._call_groq(prompt, max_tokens=m_tokens)
@@ -123,6 +121,5 @@ class StudyBrainLLM:
         return {"answer": answer_text, "sources": list(sources)}
 
 
-# Global instance
 llm = StudyBrainLLM()
 

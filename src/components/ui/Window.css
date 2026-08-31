@@ -1,4 +1,4 @@
-/* Window.css */
+
 
 .window-container {
   position: absolute;
@@ -72,7 +72,7 @@
   overflow: hidden;
 }
 
-/* Chat Styles inside window */
+
 .chat-container {
   flex: 1;
   display: flex;

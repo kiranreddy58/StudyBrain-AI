@@ -19,7 +19,7 @@ export default function Library({ onOpenAI, onView }) {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Fetch documents on mount + SSE
+  
   useEffect(() => {
     fetchDocuments();
 
@@ -92,7 +92,7 @@ export default function Library({ onOpenAI, onView }) {
       alert("Failed to connect to the server for upload.");
     } finally {
       setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = ''; // reset input
+      if (fileInputRef.current) fileInputRef.current.value = ''; 
     }
   };
 

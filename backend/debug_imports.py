@@ -2,7 +2,6 @@ import sys
 import os
 import traceback
 
-# Add backend to path like main.py does
 sys.path.append(os.getcwd())
 
 print("Testing imports...")

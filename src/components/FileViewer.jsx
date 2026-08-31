@@ -5,7 +5,7 @@ import './FileViewer.css';
 const API = '/api';
 
 export default function FileViewer({ selectedFile, onSelectFile }) {
-  const [viewMode, setViewMode] = useState('reader'); // 'ai' or 'reader'
+  const [viewMode, setViewMode] = useState('reader'); 
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -18,7 +18,7 @@ export default function FileViewer({ selectedFile, onSelectFile }) {
         const res = await fetch(`/api/document/${selectedFile.id}`);
         if (res.ok) {
           const data = await res.json();
-          // Join chunks into a readable string
+          
           const fullText = data.chunks.map(c => c.chunk_text).join('\n\n');
           setContent(fullText);
         }

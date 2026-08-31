@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import './index.css';
 
-// Phase 0 Components (Homepage)
+
 import ScrollCanvas from './components/ScrollCanvas';
 import LoadingScreen from './components/LoadingScreen';
 import Navbar from './components/Navbar';
@@ -14,7 +14,7 @@ import UseCases from './components/UseCases';
 import CTASection from './components/CTASection';
 import Footer from './components/Footer';
 
-// Phase 1 Components (Study App)
+
 import Shell from './components/layout/Shell';
 import Dashboard from './views/Dashboard';
 import Library from './views/Library';
@@ -25,25 +25,25 @@ import AssistantWorkspace from './views/AssistantWorkspace';
 const TOTAL_FRAMES = 192;
 
 export default function App() {
-  const [mode, setMode] = useState('home'); // 'home' or 'study'
+  const [mode, setMode] = useState('home'); 
   const [currentView, setCurrentView] = useState('dashboard');
-  const [openWindows, setOpenWindows] = useState([]); // Array of window objects { id, title }
+  const [openWindows, setOpenWindows] = useState([]); 
   const [userName, setUserName] = useState('Student');
   const [activeDocument, setActiveDocument] = useState(null);
 
   useEffect(() => {
-    // Initial load
+    
     const savedName = localStorage.getItem('sb_displayName');
     if (savedName) {
       setUserName(savedName);
-      // AUTO-LOGIN: If user was last in study mode, return there
+      
       const lastMode = localStorage.getItem('sb_lastMode');
       if (lastMode === 'study') {
         setMode('study');
       }
     }
 
-    // Listen for cross-component setting updates
+    
     const handleSettingsUpdate = () => {
       const updatedName = localStorage.getItem('sb_displayName');
       if (updatedName) setUserName(updatedName);
@@ -65,7 +65,7 @@ export default function App() {
     setOpenWindows(prev => prev.filter(w => w.id !== id));
   }, []);
   
-  // Phase 0 States
+  
   const [loadProgress, setLoadProgress] = useState(0);
   const [isReady, setIsReady] = useState(false);
   const [currentFrame, setCurrentFrame] = useState(0);

@@ -48,13 +48,13 @@ export default function Dashboard({ user, onSwitchView }) {
 
     fetchData();
 
-    // SSE Real-time updates
+    
     const eventSource = new EventSource(`${API}/events`);
     
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
       console.log("Real-time update received:", data.type);
-      // Refresh all dashboard data when any relevant update occurs
+      
       fetchData();
     };
 
@@ -68,7 +68,7 @@ export default function Dashboard({ user, onSwitchView }) {
     };
   }, []);
 
-  // Derive quick-stats from live mastery data
+  
   const avgAccuracy = mastery.length
     ? Math.round(mastery.reduce((s, t) => s + t.mastery_score, 0) / mastery.length)
     : 0;

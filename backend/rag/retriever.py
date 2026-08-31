@@ -6,15 +6,11 @@ def retrieve_context(query: str, top_k: int = 5, source: str = None) -> list:
     Retrieves the most relevant document chunks for a given query.
     If source is provided, filters results to that specific document.
     """
-    # 1. Create query embedding
     query_vec = generate_query_embedding(query)
     
-    # 2. Search vector store
-    # Ensure store is loaded if indices exist
     if len(vector_store.metadata) == 0:
         vector_store.load()
         
-    # Increasing search depth if filtering to ensure we find enough chunks from the target source
     search_k = top_k * 5 if source else top_k
     results = vector_store.search(query_vec, search_k)
     

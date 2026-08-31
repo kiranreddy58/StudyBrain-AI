@@ -16,7 +16,7 @@ export default function QuizPlayer({ quiz, onComplete, onExit }) {
     if (quizFinished || showFeedback) return;
     
     if (timeLeft <= 0) {
-      handleOptionSelect(null); // Timeout
+      handleOptionSelect(null); 
       return;
     }
 

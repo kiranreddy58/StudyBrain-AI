@@ -18,7 +18,6 @@ def get_mongo_db():
     try:
         from pymongo import MongoClient
         _mongo_client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
-        # Verify connection
         _mongo_client.admin.command('ping')
         _mongo_db = _mongo_client.get_database("studybrain")
         print("Connected to MongoDB Atlas Cloud Database successfully.")
@@ -67,7 +66,6 @@ def init_db():
         except Exception as e:
             print(f"MongoDB index init notice: {e}")
 
-    # Fallback / Local SQLite setup
     try:
         conn = get_connection()
         conn.execute("""

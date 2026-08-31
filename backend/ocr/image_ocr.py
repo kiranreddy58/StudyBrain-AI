@@ -12,14 +12,10 @@ def extract_text_from_image(file_path: str) -> str:
         return "Error: Image OCR is not supported on this deployment."
 
     try:
-        # 1. Open image
         img = Image.open(file_path)
         
-        # 2. Basic preprocessing (could be expanded)
-        # Convert to grayscale
         img = img.convert('L')
         
-        # 3. Run OCR
         text = pytesseract.image_to_string(img)
         
         return text.strip()

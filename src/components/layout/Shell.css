@@ -1,4 +1,4 @@
-/* Shell.css */
+
 
 .shell-container {
   display: flex;
@@ -69,7 +69,7 @@
   .shell-header-title { font-size: 1rem; }
 }
 
-/* Global Search Styles */
+
 .shell-global-search {
   position: relative;
   flex: 0 1 400px;

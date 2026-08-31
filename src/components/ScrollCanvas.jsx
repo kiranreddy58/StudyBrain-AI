@@ -4,27 +4,22 @@ const TOTAL_FRAMES = 192;
 const FRAME_BASE = '/scrool/_MConverter.eu_Exploding_Glass_Brain_VFX-';
 const FRAME_EXT = '.png';
 
-// Build ordered array of image URLs: frame 1 → 192
+
 function buildFrameUrls() {
   return Array.from({ length: TOTAL_FRAMES }, (_, i) => `${FRAME_BASE}${i + 1}${FRAME_EXT}`);
 }
 
-/**
- * Renders frames to canvas based on scroll position.
- * @param {function} onProgress  - called with (loadedCount, totalCount)
- * @param {function} onReady     - called when all frames loaded
- * @param {function} onFrameChange - called with current frame index (0-based)
- */
+
 export default function ScrollCanvas({ onProgress, onReady, onFrameChange }) {
   const canvasRef = useRef(null);
-  const imagesRef = useRef([]); // HTMLImageElement array (length 192)
+  const imagesRef = useRef([]); 
   const frameIndexRef = useRef(0);
   const rafRef = useRef(null);
   const targetFrameRef = useRef(0);
   const isDrawingRef = useRef(false);
   const readyRef = useRef(false);
 
-  // ---------- Draw a specific frame to canvas ----------
+  
   const drawFrame = useCallback((index) => {
     const canvas = canvasRef.current;
     const img = imagesRef.current[index];
@@ -36,7 +31,7 @@ export default function ScrollCanvas({ onProgress, onReady, onFrameChange }) {
     const iw = img.naturalWidth;
     const ih = img.naturalHeight;
 
-    // Cover: maintain aspect ratio, fill canvas
+    
     const scale = Math.max(cw / iw, ch / ih);
     const dw = iw * scale;
     const dh = ih * scale;
@@ -47,7 +42,7 @@ export default function ScrollCanvas({ onProgress, onReady, onFrameChange }) {
     ctx.drawImage(img, dx, dy, dw, dh);
   }, []);
 
-  // ---------- RAF render loop ----------
+  
   const renderLoop = useCallback(() => {
     const target = targetFrameRef.current;
     if (target !== frameIndexRef.current) {
@@ -58,7 +53,7 @@ export default function ScrollCanvas({ onProgress, onReady, onFrameChange }) {
     rafRef.current = requestAnimationFrame(renderLoop);
   }, [drawFrame, onFrameChange]);
 
-  // ---------- Scroll handler ----------
+  
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
@@ -72,7 +67,7 @@ export default function ScrollCanvas({ onProgress, onReady, onFrameChange }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // ---------- Canvas resize handler ----------
+  
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -80,7 +75,7 @@ export default function ScrollCanvas({ onProgress, onReady, onFrameChange }) {
     const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      // redraw current frame after resize
+      
       drawFrame(frameIndexRef.current);
     };
 
@@ -90,14 +85,14 @@ export default function ScrollCanvas({ onProgress, onReady, onFrameChange }) {
     return () => ro.disconnect();
   }, [drawFrame]);
 
-  // ---------- Preload all frames ----------
+  
   useEffect(() => {
     const urls = buildFrameUrls();
     let loadedCount = 0;
     const images = new Array(TOTAL_FRAMES).fill(null);
     imagesRef.current = images;
 
-    // Draw frame 1 as soon as it's ready (first impression)
+    
     const loadImage = (index) => {
       return new Promise((resolve) => {
         const img = new Image();
@@ -106,7 +101,7 @@ export default function ScrollCanvas({ onProgress, onReady, onFrameChange }) {
           loadedCount++;
           onProgress?.(loadedCount, TOTAL_FRAMES);
 
-          // draw frame 0 immediately as soon as first image loads
+          
           if (index === 0 && canvasRef.current) {
             drawFrame(0);
           }
@@ -130,14 +125,14 @@ export default function ScrollCanvas({ onProgress, onReady, onFrameChange }) {
       });
     };
 
-    // Load frame 1 first, then rest in natural order
+    
     loadImage(0).then(() => {
-      // Start RAF loop once first frame is drawn
+      
       if (!isDrawingRef.current) {
         isDrawingRef.current = true;
         rafRef.current = requestAnimationFrame(renderLoop);
       }
-      // Load remaining frames
+      
       for (let i = 1; i < TOTAL_FRAMES; i++) {
         loadImage(i);
       }

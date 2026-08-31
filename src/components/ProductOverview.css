@@ -1,4 +1,4 @@
-/* ProductOverview.css */
+
 
 .overview-section {
   min-height: 100vh;
@@ -28,7 +28,7 @@
   width: 100%;
 }
 
-/* Text side */
+
 .overview-text {
   flex: 1;
 }
@@ -83,7 +83,7 @@
   flex-shrink: 0;
 }
 
-/* Visual side — floating mini cards */
+
 .overview-visual {
   background: rgba(99, 102, 241, 0.04);
   border: 1px solid rgba(99, 102, 241, 0.14);

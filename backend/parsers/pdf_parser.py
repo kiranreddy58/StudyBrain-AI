@@ -5,7 +5,6 @@ def extract_pdf_text(file_path: str) -> list:
     """
     results = []
     
-    # 1. Try pypdf
     try:
         import pypdf
         reader = pypdf.PdfReader(file_path)
@@ -21,7 +20,6 @@ def extract_pdf_text(file_path: str) -> list:
     except Exception as e:
         print(f"pypdf extraction failed: {e}")
 
-    # 2. Try fitz / pymupdf
     try:
         import fitz
         doc = fitz.open(file_path)

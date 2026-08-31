@@ -28,7 +28,7 @@ def _consistency_score(rows: list[dict]) -> float:
     total_questions = sum(r["quiz_total"] for r in rows)
     total_mistakes = sum(r["mistakes"] for r in rows)
     if total_questions == 0:
-        return 50.0  # neutral
+        return 50.0
     accuracy = 1 - (total_mistakes / max(total_questions, 1))
     return max(accuracy, 0.0) * 100
 

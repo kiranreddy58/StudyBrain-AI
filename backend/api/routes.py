@@ -20,18 +20,15 @@ router = APIRouter()
 
 @router.post("/upload")
 async def upload_document(file: UploadFile = File(...)):
-    # 1. Save File
     file_path = await save_upload_file(file)
     doc_id = str(uuid.uuid4())
     filename = file.filename
     
-    # 2. Detect Type
     file_type = detect_file_type(file_path)
     
     all_chunks = []
     
     try:
-        # 3. Content Extraction
         print("Starting extraction...")
         if file_type == 'pdf':
             pages = extract_pdf_text(file_path)
@@ -62,27 +59,22 @@ async def upload_document(file: UploadFile = File(...)):
             
         print(f"Extracted {len(all_chunks)} chunks.")
         
-        # 4. Generate Embeddings & Index
         if all_chunks:
             print("Embedding started for {} chunks...".format(len(all_chunks)))
-            # Extract only text for embedding
             chunk_texts = [c['chunk_text'] for c in all_chunks]
             embeddings = generate_embeddings(chunk_texts)
             print("Embedding done. Indexing...")
             
-            # Add to FAISS index
             vector_store.add_chunks(embeddings, all_chunks)
             vector_store.save()
             print("Indexing done and saved.")
         else:
             print("No chunks extracted from document.")
             
-        # 5. Save Processed Data (JSON snapshot with raw path)
         print("Saving to SQL database...")
         save_processed_document(doc_id, all_chunks, raw_path=file_path)
         print("SQL Save complete.")
         
-        # 6. Broadcast Update
         print("Broadcasting update to SSE...")
         await broadcast_update("DOCUMENT_UPLOADED", {"id": doc_id, "filename": filename})
         print("Broadcast done.")
@@ -125,7 +117,6 @@ async def get_raw_document(doc_id: str):
     
     file_path = data["metadata"]["raw_path"]
     if not os.path.exists(file_path):
-        # Try to reconstruct path if it was absolute in another environment
         if os.path.isabs(file_path):
             basename = os.path.basename(file_path)
             potential_path = os.path.join("data", "uploads", basename)
@@ -158,10 +149,8 @@ async def global_search(query: str, top_k: int = 5):
     if not query:
         raise HTTPException(status_code=400, detail="Query cannot be empty")
     
-    # Generate query embedding
     query_vector = generate_embeddings([query])[0]
     
-    # Search vector store
     results = vector_store.search(query_vector, top_k=top_k)
     
     return {"results": results}

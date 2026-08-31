@@ -6,7 +6,7 @@ router = APIRouter()
 
 class SettingUpdate(BaseModel):
     key: str
-    value: str # Simplified for now, can be complex JSON
+    value: str
 
 @router.get("/")
 async def settings_get():

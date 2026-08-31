@@ -23,7 +23,7 @@ router = APIRouter()
 class QuizRequest(BaseModel):
     topic: str
     num_questions: int = 5
-    difficulty: str = "auto"   # "auto" | "easy" | "medium" | "hard"
+    difficulty: str = "auto"
     provider: Optional[str] = "auto"
     filename: Optional[str] = None
 
@@ -38,25 +38,19 @@ class AssignmentRequest(BaseModel):
     provider: Optional[str] = "auto"
 
 
-# ─────────────────────────────────────────────
-# POST /generate-quiz
-# ─────────────────────────────────────────────
 @router.post("/generate-quiz")
 async def generate_quiz(request: QuizRequest):
     """Generate interactive quiz questions from study materials."""
     try:
-        # Determine difficulty
         if request.difficulty == "auto":
             diff_info = adjust_question_difficulty(request.topic)
             difficulty = diff_info["difficulty"]
         else:
             difficulty = request.difficulty
 
-        # Retrieve context
         chunks = retrieve_context(request.topic, top_k=10, source=request.filename)
         context = format_context_for_llm(chunks)
 
-        # Build prompt for JSON output
         prompt = (
             f"As an AI tutor, create a {difficulty} quiz with {request.num_questions} questions about '{request.topic}'.\n"
             "Use ONLY provided context. Return ONLY JSON:\n"
@@ -77,10 +71,8 @@ async def generate_quiz(request: QuizRequest):
 
         result = await llm.generate_answer(prompt, context, provider=request.provider, specialized_prompt=True)
         
-        # Try to parse JSON from response
         import json
         try:
-            # Simple cleanup for common LLM markdown wrapping
             raw_text = result["answer"].strip()
             if raw_text.startswith("```json"):
                 raw_text = raw_text.split("```json", 1)[1].split("```", 1)[0].strip()
@@ -95,7 +87,6 @@ async def generate_quiz(request: QuizRequest):
                 "sources": result["sources"],
             }
         except Exception as e:
-            # Fallback if AI fails to produce valid JSON
             return {
                 "topic": request.topic,
                 "error": "AI failed to generate a structured quiz. Please try again.",
@@ -105,9 +96,6 @@ async def generate_quiz(request: QuizRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ─────────────────────────────────────────────
-# POST /explain
-# ─────────────────────────────────────────────
 @router.post("/explain")
 async def explain_concept(request: ConceptRequest):
     """Explain a concept using relevant study material chunks."""
@@ -140,9 +128,6 @@ async def explain_concept(request: ConceptRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ─────────────────────────────────────────────
-# POST /assignment-help
-# ─────────────────────────────────────────────
 @router.post("/assignment-help")
 async def assignment_help(request: AssignmentRequest):
     """Provide step-by-step guidance on an assignment question."""
@@ -176,9 +161,6 @@ async def assignment_help(request: AssignmentRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ─────────────────────────────────────────────
-# GET /learning-progress
-# ─────────────────────────────────────────────
 @router.get("/learning-progress")
 async def learning_progress():
     """
@@ -191,20 +173,16 @@ async def learning_progress():
     recommendations = recommend_next_topics(limit=5)
     all_activity = get_all_activity()
     
-    # Heatmap data for the last 60 days
     from backend.learning.learning_tracker import get_sessions_per_day
     heatmap_data = get_sessions_per_day(days=60)
 
-    # Calculate stats
     total_minutes = sum(a['study_time_minutes'] for a in all_activity)
     total_study_time = f"{int(total_minutes // 60)}h {int(total_minutes % 60)}m" if total_minutes > 0 else "0h"
     
-    # Calculate streak (consecutive days)
     activity_dates = sorted(list(set(datetime.fromisoformat(a['timestamp']).date() for a in all_activity)), reverse=True)
     streak = 0
     if activity_dates:
         today = date.today()
-        # Simple streak calculation
         current = today
         for ad in activity_dates:
             if ad == current:

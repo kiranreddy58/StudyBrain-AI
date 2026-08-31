@@ -17,7 +17,7 @@ INDEX_FILE, METADATA_FILE = _get_vector_paths()
 class VectorStore:
     def __init__(self, dimension: int = 384):
         self.dimension = dimension
-        self.embeddings = []  # List of lists of floats
+        self.embeddings = []
         self.metadata = []
 
     def add_chunks(self, embeddings: list, chunk_metadata: list):
@@ -27,7 +27,6 @@ class VectorStore:
         if not embeddings:
             return
             
-        # Update dimension dynamically based on input embeddings
         self.dimension = len(embeddings[0])
         
         self.embeddings.extend(embeddings)
@@ -40,16 +39,13 @@ class VectorStore:
         if not self.embeddings or not self.metadata or not query_embedding:
             return []
             
-        # Ensure query_embedding is a flat list
         q_vec = query_embedding
         
-        # Calculate L2 distance: sum((a - b)^2)
         distances = []
         for emb in self.embeddings:
             dist = sum((x - y) ** 2 for x, y in zip(emb, q_vec))
             distances.append(dist)
         
-        # Get top-k indices sorted by distance ascending
         top_k = min(top_k, len(distances))
         indices = sorted(range(len(distances)), key=lambda i: distances[i])[:top_k]
         
@@ -67,7 +63,6 @@ class VectorStore:
         Saves the embeddings (as .json) and metadata (as .json) to disk.
         """
         os.makedirs(os.path.dirname(INDEX_FILE), exist_ok=True)
-        # Save embeddings as JSON list
         with open(INDEX_FILE + ".json", 'w', encoding='utf-8') as f:
             json.dump(self.embeddings, f)
         with open(METADATA_FILE, 'w', encoding='utf-8') as f:
@@ -90,7 +85,6 @@ class VectorStore:
             except Exception as e:
                 print(f"Error loading JSON vector store: {e}")
         
-        # Fallback to load legacy numpy format if numpy is installed
         npy_path = INDEX_FILE + ".npy"
         if os.path.exists(npy_path) and os.path.exists(METADATA_FILE):
             try:
@@ -105,5 +99,4 @@ class VectorStore:
                 print(f"Failed to load legacy numpy index: {e}")
         return False
 
-# Global instance
 vector_store = VectorStore()

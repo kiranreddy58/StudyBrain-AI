@@ -14,7 +14,6 @@ def save_processed_document(doc_id: str, chunks: list, raw_path: str = None):
     mongo = get_mongo_db()
     if mongo is not None:
         try:
-            # 1. Update Document
             mongo.documents.update_one(
                 {"id": doc_id},
                 {"$set": {
@@ -27,7 +26,6 @@ def save_processed_document(doc_id: str, chunks: list, raw_path: str = None):
                 }},
                 upsert=True
             )
-            # 2. Update Chunks
             mongo.document_chunks.delete_many({"doc_id": doc_id})
             if chunks:
                 chunk_docs = []
@@ -43,7 +41,6 @@ def save_processed_document(doc_id: str, chunks: list, raw_path: str = None):
         except Exception as e:
             print(f"MongoDB save_processed_document error: {e}")
 
-    # Fallback to SQLite
     conn = get_connection()
     try:
         conn.execute("""

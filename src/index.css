@@ -1,6 +1,4 @@
-/* ============================================================
-   STUDYBRAIN AI — Global Reset & Design Tokens
-   ============================================================ */
+
 
 @font-face {
   font-family: 'Outfit';
@@ -51,7 +49,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Canvas background */
+
 .canvas-bg {
   position: fixed;
   top: 0; left: 0;
@@ -60,13 +58,13 @@ body {
   display: block;
 }
 
-/* Page wrapper — sits above canvas */
+
 .page-wrapper {
   position: relative;
   z-index: 10;
 }
 
-/* Scroll progress bar */
+
 .scroll-progress-bar {
   position: fixed;
   top: 0; left: 0;
@@ -77,7 +75,7 @@ body {
   transition: width 0.05s linear;
 }
 
-/* Frame counter */
+
 .frame-counter {
   position: fixed;
   bottom: 1.25rem;
@@ -91,7 +89,7 @@ body {
   pointer-events: none;
 }
 
-/* Shared reveal animation */
+
 @keyframes fade-up {
   to { opacity: 1; transform: translateY(0); }
 }
@@ -100,7 +98,7 @@ body {
   to { opacity: 1; }
 }
 
-/* Shared section overlay background */
+
 .section-overlay {
   position: relative;
   padding: clamp(4rem, 8vh, 7rem) clamp(1.5rem, 6vw, 6rem);
@@ -116,7 +114,7 @@ body {
   z-index: -1;
 }
 
-/* Shared eyebrow tag */
+
 .eyebrow-tag {
   display: inline-block;
   font-size: 0.65rem;
@@ -131,7 +129,7 @@ body {
   border-radius: var(--radius-pill);
 }
 
-/* Shared section title */
+
 .section-title {
   font-size: clamp(2rem, 4.5vw, 3.5rem);
   font-weight: 800;
@@ -144,7 +142,7 @@ body {
   background-clip: text;
 }
 
-/* Shared section subtitle */
+
 .section-sub {
   font-size: clamp(0.95rem, 1.8vw, 1.1rem);
   font-weight: 300;
@@ -153,7 +151,7 @@ body {
   max-width: 560px;
 }
 
-/* Shared button styles */
+
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -187,7 +185,7 @@ body {
   gap: 0.6rem;
   padding: 0.85rem 2rem;
   border: 1px solid rgba(167, 139, 250, 0.3);
-  background: rgba(167, 139, 250, 0.08); /* Indigo/Violet hint */
+  background: rgba(167, 139, 250, 0.08); 
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   color: #fff;
@@ -206,7 +204,7 @@ body {
   background: rgba(34, 211, 238, 0.12);
 }
 
-/* User Profile Sidebar fallback */
+
 .user-profile {
   display: flex;
   align-items: center;
@@ -234,7 +232,7 @@ body {
   font-weight: 600;
 }
 
-/* Global Responsive Utilities */
+
 @media (max-width: 1024px) {
   :root {
     --radius-card: 1rem;

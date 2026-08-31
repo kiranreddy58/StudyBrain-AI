@@ -16,12 +16,10 @@ async def ask_question(request: QuestionRequest):
         raise HTTPException(status_code=400, detail="Question cannot be empty")
         
     try:
-        # Save user message
         save_chat_message("user", request.question)
         
         response = await run_rag_pipeline(request.question, provider=request.provider)
         
-        # Save assistant message
         save_chat_message("assistant", response["answer"])
         
         return response

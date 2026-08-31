@@ -23,7 +23,7 @@ export default function Window({ id, title, onClose, initialPos = { x: 50, y: 50
     setIsTyping(true);
 
     try {
-      // In a real app we might pass the document ID, but passing the title as context constraint works
+      
       const res = await fetch(`${API}/ai/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

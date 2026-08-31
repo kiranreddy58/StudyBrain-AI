@@ -14,7 +14,6 @@ from backend.api.settings_routes import router as settings_router
 
 app = FastAPI(title="StudyBrain AI Backend", version="1.0.0")
 
-# Initialize database on startup
 @app.on_event("startup")
 async def startup_event():
     try:
@@ -26,7 +25,6 @@ async def startup_event():
     except Exception as e:
         print(f"Startup initialization note: {e}")
 
-# Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

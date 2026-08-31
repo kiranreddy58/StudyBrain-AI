@@ -41,7 +41,7 @@ export default function Progress() {
   return (
     <div className="progress-container">
       <div className="progress-grid">
-        {/* Study Consistency Heatmap */}
+        {}
         <div className="consistency-card">
           <div className="stat-header">
             <h3 className="card-title">Study Consistency</h3>
@@ -69,7 +69,7 @@ export default function Progress() {
           )}
         </div>
 
-        {/* What to Study Next (live recommendations) */}
+        {}
         <div className="mastery-radar">
           <h3 className="card-title" style={{marginBottom: '1rem'}}>What to Study Next</h3>
           {loading ? (
@@ -101,7 +101,7 @@ export default function Progress() {
         </div>
       </div>
 
-      {/* Detailed Topic Mastery (live) */}
+      {}
       <div className="progress-list">
         <h3 className="card-title">Detailed Topic Mastery</h3>
         {loading ? (

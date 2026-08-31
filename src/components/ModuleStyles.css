@@ -224,7 +224,7 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Side Panel Optimization */
+
 .module-panel {
   display: flex;
   flex-direction: column;
@@ -303,7 +303,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* Override existing cards for side panel */
+
 .module-panel .explanation-card, 
 .module-panel .guidance-container {
   margin-top: 0;

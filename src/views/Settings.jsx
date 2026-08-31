@@ -9,7 +9,7 @@ export default function Settings() {
   const [model, setModel] = useState('groq');
   const [saved, setSaved] = useState(false);
 
-  // Load from database on mount
+  
   useEffect(() => {
     async function loadSettings() {
       try {
@@ -61,7 +61,7 @@ export default function Settings() {
 
       await Promise.all(updates);
       
-      // Also update local storage for synchronous reads in other components
+      
       localStorage.setItem('sb_model', model);
       localStorage.setItem('sb_displayName', displayName);
 

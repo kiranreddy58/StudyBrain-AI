@@ -40,7 +40,7 @@ export default function ContentSections({ onEnterApp }) {
 
   return (
     <>
-      {/* ── HERO ──────────────────────────────────── */}
+      {}
       <section className="hero-section">
         <span className="hero-eyebrow">Experience · The Future · Now</span>
         <h1 className="hero-title">
@@ -61,10 +61,10 @@ export default function ContentSections({ onEnterApp }) {
         </div>
       </section>
 
-      {/* ── SPACER: let scroll drive frames ────── */}
+      {}
       <div className="content-spacer" />
 
-      {/* ── SECTION 1 (right-aligned) ────────────── */}
+      {}
       <section id="discover" className="content-section right">
         <GlassCard
           tag="Chapter I"
@@ -88,10 +88,10 @@ export default function ContentSections({ onEnterApp }) {
         </GlassCard>
       </section>
 
-      {/* ── SPACER ─────────────────────────────── */}
+      {}
       <div className="content-spacer" />
 
-      {/* ── SECTION 2 (left-aligned) ─────────────── */}
+      {}
       <section className="content-section left">
         <GlassCard
           tag="Chapter II"
@@ -104,10 +104,10 @@ export default function ContentSections({ onEnterApp }) {
         </GlassCard>
       </section>
 
-      {/* ── SPACER → finale ────────────────────── */}
+      {}
       <div style={{ height: '100vh' }} />
 
-      {/* ── FINALE ───────────────────────────────── */}
+      {}
       <section className="finale-section">
         <h2 ref={finaleTitleRef} className="finale-title">
           Beyond<br />The Frame

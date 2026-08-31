@@ -7,8 +7,8 @@ prioritising weak topics and avoiding already-mastered ones.
 from backend.learning.mastery_model import get_all_mastery
 
 
-WEAK_THRESHOLD = 50.0    # mastery below this → high priority
-STRONG_THRESHOLD = 80.0  # mastery above this → de-prioritise
+WEAK_THRESHOLD = 50.0
+STRONG_THRESHOLD = 80.0
 
 
 def recommend_next_topics(limit: int = 5) -> list[dict]:
@@ -18,7 +18,6 @@ def recommend_next_topics(limit: int = 5) -> list[dict]:
     """
     mastery_map = get_all_mastery()
 
-    # Separate into priority buckets
     weak = []
     medium = []
     strong = []
@@ -35,7 +34,6 @@ def recommend_next_topics(limit: int = 5) -> list[dict]:
             entry["priority"] = "low"
             strong.append(entry)
 
-    # Sort each bucket by ascending mastery (weakest first)
     weak.sort(key=lambda x: x["mastery_score"])
     medium.sort(key=lambda x: x["mastery_score"])
     strong.sort(key=lambda x: x["mastery_score"])

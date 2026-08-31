@@ -14,14 +14,12 @@ def generate_embeddings(text_list: list) -> list:
     if not text_list:
         return []
 
-    # 1. Try Hugging Face Inference API first (extremely fast, matching local model dimensions)
     try:
         hf_token = os.environ.get("HF_API_KEY") or os.environ.get("HF_TOKEN")
         headers = {}
         if hf_token:
             headers["Authorization"] = f"Bearer {hf_token}"
         
-        # Retry once if the model is loading
         for attempt in range(2):
             response = requests.post(
                 "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2",
@@ -37,7 +35,6 @@ def generate_embeddings(text_list: list) -> list:
                     elif isinstance(res_data[0], float):
                         return [[float(x) for x in res_data]]
             elif response.status_code == 503:
-                # Model is loading on HF servers, wait a bit and retry
                 err_data = response.json()
                 wait_time = min(err_data.get("estimated_time", 5), 5)
                 print(f"Hugging Face model is loading. Waiting {wait_time}s...")
@@ -49,11 +46,9 @@ def generate_embeddings(text_list: list) -> list:
     except Exception as e:
         print(f"Hugging Face embeddings failed: {e}")
 
-    # 2. Try Gemini Embeddings API (Direct REST call to avoid google-generativeai dependency)
     api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
     if api_key:
         try:
-            # Batch embedding call
             url = f"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:batchEmbedContents?key={api_key}"
             requests_payload = {
                 "requests": [
@@ -71,17 +66,14 @@ def generate_embeddings(text_list: list) -> list:
         except Exception as e:
             print(f"Gemini embeddings REST call failed: {e}")
 
-    # 3. Fallback to local sentence-transformers if installed (e.g. for local dev)
     local_model = _get_local_model()
     if local_model is not None:
         try:
             embeddings = local_model.encode(text_list)
-            # convert from numpy array to python list
             return [[float(x) for x in emb] for emb in embeddings.tolist()]
         except Exception as e:
             print(f"Local sentence-transformers embedding failed: {e}")
 
-    # 4. Ultimate offline/no-key fallback: Generate dummy embeddings (hash-based) so it doesn't crash
     print("WARNING: All embedding providers failed. Generating dummy embeddings.")
     dim = 384
     dummy = []

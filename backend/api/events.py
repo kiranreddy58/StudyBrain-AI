@@ -5,7 +5,6 @@ import json
 
 router = APIRouter()
 
-# Global list of active queues for SSE clients
 clients = []
 
 @router.get("/events")

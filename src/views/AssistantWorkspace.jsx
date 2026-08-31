@@ -97,7 +97,7 @@ export default function AssistantWorkspace({ user, initialDoc }) {
           topic: selectedDoc.filename,
           quiz_score: score,
           quiz_total: activeQuiz.length,
-          study_time_minutes: 5, // Estimate or track actual
+          study_time_minutes: 5, 
           mistakes: activeQuiz.length - score
         }),
       });

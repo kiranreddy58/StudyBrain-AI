@@ -1,4 +1,4 @@
-/* CTASection.css */
+
 
 .cta-section {
   min-height: 90vh;
@@ -20,7 +20,7 @@
   z-index: -1;
 }
 
-/* Ambient glow blob */
+
 .cta-glow {
   position: absolute;
   width: min(700px, 100vw);
@@ -104,7 +104,7 @@
   transform: translateY(0);
 }
 
-/* Phase phases badge row */
+
 .cta-phases {
   display: flex;
   justify-content: center;

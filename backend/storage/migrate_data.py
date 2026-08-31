@@ -31,11 +31,9 @@ def migrate_documents():
                 chunks = data.get("chunks", [])
                 meta = data.get("metadata", {})
             
-            # Extract basic info
             source_name = meta.get("filename") or (chunks[0].get("source") if chunks else "Unknown")
             raw_path = meta.get("raw_path")
             
-            # 1. Insert Document
             conn.execute("""
                 INSERT OR IGNORE INTO documents (id, filename, file_type, raw_path, uploaded_at)
                 VALUES (?, ?, ?, ?, ?)
@@ -47,7 +45,6 @@ def migrate_documents():
                 datetime.fromtimestamp(os.path.getmtime(file_path)).isoformat()
             ))
             
-            # 2. Insert Chunks
             for i, chunk in enumerate(chunks):
                 conn.execute("""
                     INSERT INTO document_chunks (doc_id, chunk_index, content, metadata)

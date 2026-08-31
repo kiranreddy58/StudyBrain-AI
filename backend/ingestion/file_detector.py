@@ -16,7 +16,6 @@ def detect_file_type(file_path: str) -> str:
     if ext in ['.txt', '.md']:
         return 'text'
         
-    # Fallback to mime type
     mime_type, _ = mimetypes.guess_type(file_path)
     if mime_type:
         if 'image' in mime_type: return 'image'

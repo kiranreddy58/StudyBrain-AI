@@ -65,7 +65,7 @@ export default function Shell({ children, currentView, onViewChange, user, openW
               <div className="search-results-dropdown">
                 {results.map((res, idx) => (
                   <div key={idx} className="search-result-item" onClick={() => {
-                    // Navigate to document view or highlight
+                    
                     console.log("Navigate to:", res.metadata.doc_id);
                     clearSearch();
                   }}>
@@ -94,7 +94,7 @@ export default function Shell({ children, currentView, onViewChange, user, openW
           {children}
         </div>
 
-        {/* Floating Windows Area */}
+        {}
         {openWindows.map((win) => (
           <Window 
             key={win.id} 
