@@ -24,7 +24,7 @@ An intelligent, lightning-fast personal AI learning companion powered by **Groq 
 | **LLM Inference** | **Groq Cloud API** (`openai/gpt-oss-120b`, `qwen/qwen3.8-27b`, `llama-3.3-70b-versatile`) |
 | **Vector Store & Retrieval** | FAISS, Sentence Transformers / Cloud MiniLM Embeddings |
 | **Document Processing** | PyMuPDF, OCR Engine, Custom Text Chunkers |
-| **Storage & Database** | SQLite, JSON Activity Store |
+| **Storage & Database** | **MongoDB Atlas Cloud Database** |
 | **Deployment** | Vercel (Serverless Frontend & API) |
 
 ---
@@ -35,6 +35,7 @@ An intelligent, lightning-fast personal AI learning companion powered by **Groq 
 - **Node.js 18+**
 - **Python 3.10+**
 - **Groq API Key** (Get free key from [Groq Console](https://console.groq.com/))
+- **MongoDB Atlas Cloud URI**
 
 ---
 
@@ -42,6 +43,7 @@ An intelligent, lightning-fast personal AI learning companion powered by **Groq 
 Create a `.env` file in the project root:
 ```env
 GROQ_API_KEY=gsk_your_groq_api_key_here
+MONGODB_URI=mongodb+srv://<user>:<password>@cluster0.mongodb.net/studybrain?retryWrites=true&w=majority
 ```
 
 ---
