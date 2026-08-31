@@ -1,0 +1,42 @@
+# Dependencies & Virtual Environments
+node_modules
+.venv
+venv
+env
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# Git & Development files
+.git
+.gitignore
+.env
+.env.local
+.vscode
+.idea
+*.log
+backend_logs*.txt
+final_debug_logs.txt
+
+# Binary models & weights
+*.pt
+*.pth
+*.bin
+*.onnx
+*.weights
+*.h5
+*.tflite
+
+# Test files & benchmarks
+test_*.py
+**/test_*.py
+tests
+scratch
+
+# Local database & archives
+data/*.db
+data/uploads/*
+*.zip
+*.pem
+*.tar.gz
