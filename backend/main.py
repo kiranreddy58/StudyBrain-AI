@@ -58,18 +58,13 @@ app.include_router(settings_router, prefix="/api/settings", tags=["Settings"])
 
 @app.get("/api/status")
 async def get_status():
-    """Checks the status of various backend services."""
-    from backend.llm.llm_interface import llm
+    """Checks the status of backend services."""
     import os
-    ollama_ok = await llm._call_ollama("test") is not None
     groq_ok = bool(os.environ.get("GROQ_API_KEY"))
-    
-    provider = "Ollama" if ollama_ok else ("Groq" if groq_ok else "Gemini")
     
     return {
         "status": "online",
-        "llm_provider": provider,
-        "ollama_available": ollama_ok,
+        "llm_provider": "Groq",
         "groq_available": groq_ok
     }
 

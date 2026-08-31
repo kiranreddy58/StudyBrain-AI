@@ -6,7 +6,7 @@ export default function Settings() {
   const [activeToggles, setActiveToggles] = useState(['ai-optimize', 'notifications']);
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
-  const [model, setModel] = useState('StudyBrain Ultra (Gemini Flash)');
+  const [model, setModel] = useState('groq');
   const [saved, setSaved] = useState(false);
 
   // Load from database on mount
@@ -114,9 +114,9 @@ export default function Settings() {
               value={model}
               onChange={(e) => setModel(e.target.value)}
             >
-              <option value="auto">Smart Selection (Ollama Preferred)</option>
-              <option value="ollama">Local System (Ollama llama3)</option>
-              <option value="gemini">Cloud Enhanced (Gemini Flash)</option>
+              <option value="groq">Groq Ultra-Fast (GPT-OSS 120B)</option>
+              <option value="qwen">Groq Ultra-Fast (Qwen 3.8 27B)</option>
+              <option value="llama">Groq Ultra-Fast (Llama 3.3 70B)</option>
             </select>
           </div>
           

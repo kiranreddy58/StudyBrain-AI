@@ -1,62 +1,124 @@
-# StudyBrain AI 🧠
+# StudyBrain AI 🧠⚡
 
-### 🚀 [Live Working Demo](http://18.188.200.96)
+An intelligent, lightning-fast personal AI learning companion powered by **Groq Ultra-Fast AI Inference** and a **Multi-Modal Retrieval-Augmented Generation (RAG)** pipeline. StudyBrain AI transforms your study materials (PDFs, notes, textbooks, code) into a dynamic, interactive knowledge engine.
 
-StudyBrain AI is a powerful, locally-hosted intelligent learning companion. It transforms your study materials (PDFs, notes, code) into a dynamic knowledge engine.
+---
 
-## 🚀 Features
-- **Dynamic Heatmap & Analytics**: Track your study consistency with a real-time activity heatmap.
-- **Multi-Modal RAG Pipeline**: Semantic search across your uploaded documents for grounded AI answers.
-- **Ollama Integration**: Run your AI locally for privacy and cost savings, with an automatic Gemini fallback.
-- **Adaptive Learning**: Mastery tracking that adjusts quiz difficulties based on your progress.
-- **Floating AI Assistant**: Multi-task with multiple chat windows for different study topics.
+## 🌟 Key Features
 
-## 🏗️ Architecture
-- **Frontend**: React + Vite + Lucide Icons (Vanilla CSS for premium styling).
-- **Backend**: FastAPI + Python.
-- **Database**: SQLite (Activity & Mastery Tracking).
-- **Vector Store**: FAISS (for Semantic Search).
-- **LLM**: Local Ollama (llama3) or Google Gemini Flash.
+- ⚡ **Groq Ultra-Fast AI Engine**: Sub-second AI inference powered by Groq LPU technology.
+- 📚 **Multi-Modal RAG Pipeline**: Semantic document chunking, embeddings, and vector retrieval with source attribution.
+- 📊 **Study Activity & Mastery Analytics**: Real-time study heatmaps, progress tracking, and concept mastery metrics.
+- 🎯 **Adaptive Quiz & Learning Generator**: Dynamically generates tailored quizzes, summaries, and practice questions from your documents.
+- 🪟 **Floating Multi-Window Assistant**: Multi-task across different subjects with draggable floating study windows.
+- 🎨 **Modern Glassmorphic UI**: Sleek, responsive React design with dark mode and micro-interactions.
 
-## 🛠️ Installation & Run Commands
+---
+
+## 🏗️ Tech Stack & Architecture
+
+| Layer | Technology |
+| :--- | :--- |
+| **Frontend** | React 19, Vite, Lucide Icons, Vanilla CSS Design System |
+| **Backend** | Python 3.10+, FastAPI, Uvicorn |
+| **LLM Inference** | **Groq Cloud API** (`openai/gpt-oss-120b`, `qwen/qwen3.8-27b`, `llama-3.3-70b-versatile`) |
+| **Vector Store & Retrieval** | FAISS, Sentence Transformers / Cloud MiniLM Embeddings |
+| **Document Processing** | PyMuPDF, OCR Engine, Custom Text Chunkers |
+| **Storage & Database** | SQLite, JSON Activity Store |
+| **Deployment** | Vercel (Serverless Frontend & API) |
+
+---
+
+## 🚀 Quick Start & Run Commands
 
 ### 1. Prerequisites
-- **Python 3.10+**
 - **Node.js 18+**
-- **Ollama** (Optional, for local AI): [Download here](https://ollama.com/)
+- **Python 3.10+**
+- **Groq API Key** (Get free key from [Groq Console](https://console.groq.com/))
 
-### 2. Setup Backend
-Open a terminal in the project root:
+---
+
+### 2. Environment Configuration
+Create a `.env` file in the project root:
+```env
+GROQ_API_KEY=gsk_your_groq_api_key_here
+```
+
+---
+
+### 3. Start Backend Server
+
 ```powershell
+# Navigate into the project folder
+cd StudyBrain-AI
+
+# Activate virtual environment (if using .venv)
+..\.venv\Scripts\Activate.ps1
+
 # Install dependencies
 pip install -r requirements.txt
 
-# Start the server
+# Start FastAPI backend
 python -m backend.main
 ```
+> Backend runs at: `http://127.0.0.1:8000` (API Docs at `http://127.0.0.1:8000/docs`)
 
-### 3. Setup Frontend
-Open a **new** terminal in the project root:
+---
+
+### 4. Start Frontend Development Server
+
+Open a **separate terminal**:
 ```powershell
+cd StudyBrain-AI
+
 # Install dependencies
 npm install
 
-# Start the dev server
+# Start Vite dev server
 npm run dev
 ```
-
-### 4. Enable Local AI (Optional)
-If you have Ollama installed:
-```powershell
-ollama serve
-ollama pull llama3
-```
-
-## 📂 Project Structure
-- `backend/`: FastAPI source code and logic.
-- `src/`: React frontend components and views.
-- `data/`: Local storage for processed documents and logs.
-- `public/`: Static assets.
+> Frontend runs at: `http://localhost:5173`
 
 ---
+
+## 📂 Project Structure
+
+```text
+StudyBrain-AI/
+├── api/                   # Serverless entrypoint for Vercel deployment
+│   └── index.py
+├── backend/               # FastAPI core backend
+│   ├── api/               # API routes (ask, ingestion, learning, copilot, settings)
+│   ├── ingestion/         # File upload & document parsers
+│   ├── llm/               # Groq LLM interface & prompt management
+│   ├── rag/               # Vector store & embedding pipeline
+│   ├── storage/           # SQLite DB & activity models
+│   └── main.py            # FastAPI main application
+├── src/                   # React frontend application
+│   ├── components/        # Reusable UI components & modules
+│   ├── views/             # Main app views & dashboards
+│   ├── App.jsx            # Main React entry & routing
+│   └── index.css          # Design system & styles
+├── public/                # Static assets
+├── vercel.json            # Vercel deployment configuration
+├── requirements.txt       # Python dependencies
+└── package.json           # Node.js dependencies & scripts
+```
+
+---
+
+## 🌐 Deployment to Vercel
+
+1. Push your repository to GitHub:
+   ```bash
+   git add .
+   git commit -m "Deploy StudyBrain AI with Groq AI integration"
+   git push origin main
+   ```
+2. Import the repository in [Vercel](https://vercel.com).
+3. Add your `GROQ_API_KEY` in Vercel **Project Settings → Environment Variables**.
+4. Click **Deploy**.
+
+---
+
 *Built with ❤️ for intelligent learning.*

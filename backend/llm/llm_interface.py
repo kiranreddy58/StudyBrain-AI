@@ -2,12 +2,16 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-import requests
-
-OLLAMA_URL = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "llama3"
-
-GROQ_MODEL = "llama-3.1-8b-instant"
+CANDIDATE_GROQ_MODELS = [
+    os.environ.get("GROQ_MODEL"),
+    "openai/gpt-oss-120b",
+    "qwen/qwen3.8-27b",
+    "openai/gpt-oss-20b",
+    "llama-3.3-70b-versatile"
+]
+# Filter out None or empty values
+CANDIDATE_GROQ_MODELS = [m for m in CANDIDATE_GROQ_MODELS if m]
+GROQ_MODEL = CANDIDATE_GROQ_MODELS[0]
 
 _groq_client = None
 
@@ -34,23 +38,8 @@ class StudyBrainLLM:
     def __init__(self):
         pass
 
-    async def _call_ollama(self, prompt: str) -> str:
-        """Calls the local Ollama API."""
-        print("DEBUG: Calling Ollama...")
-        try:
-            payload = {"model": OLLAMA_MODEL, "prompt": prompt, "stream": False}
-            response = requests.post(OLLAMA_URL, json=payload, timeout=30)
-            if response.status_code == 200:
-                print("DEBUG: Ollama success")
-                return response.json().get("response", "")
-            print(f"DEBUG: Ollama failed with status {response.status_code}")
-            return None
-        except Exception as e:
-            print(f"DEBUG: Ollama exception: {str(e)}")
-            return None
-
     async def _call_groq(self, prompt: str, max_tokens: int = 4096) -> str:
-        """Calls Groq's free-tier API (Llama 3.1)."""
+        """Calls Groq's ultra-fast API with candidate model fallbacks."""
         import asyncio
         print("DEBUG: Getting Groq client...")
         client = _get_groq_client()
@@ -58,33 +47,38 @@ class StudyBrainLLM:
             print("DEBUG: No Groq client available")
             return None
 
-        print(f"DEBUG: Executing Groq sync call (max_tokens={max_tokens})...")
         def _sync_call():
-            try:
-                completion = client.chat.completions.create(
-                    model=GROQ_MODEL,
-                    messages=[
-                        {"role": "system", "content": "You are StudyBrain AI, an intelligent personal AI tutor. Answer questions using only the provided context."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.7,
-                    max_tokens=max_tokens,
-                )
-                res = completion.choices[0].message.content
-                print(f"DEBUG: Groq sync call success, length: {len(res) if res else 0}")
-                return res
-            except Exception as e:
-                print(f"DEBUG: Groq API call failed: {str(e)}")
-                raise e
+            last_err = None
+            for model_name in CANDIDATE_GROQ_MODELS:
+                try:
+                    print(f"DEBUG: Trying Groq model '{model_name}' (max_tokens={max_tokens})...")
+                    completion = client.chat.completions.create(
+                        model=model_name,
+                        messages=[
+                            {"role": "system", "content": "You are StudyBrain AI, an intelligent personal AI tutor. Answer questions clearly and educationally using only the provided context."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        temperature=0.7,
+                        max_tokens=max_tokens,
+                    )
+                    res = completion.choices[0].message.content
+                    print(f"DEBUG: Groq model '{model_name}' success, length: {len(res) if res else 0}")
+                    return res
+                except Exception as e:
+                    print(f"DEBUG: Groq model '{model_name}' failed: {str(e)}")
+                    last_err = e
+                    continue
+            if last_err:
+                raise last_err
+            return None
 
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, _sync_call)
 
-    async def generate_answer(self, query: str, context: str, provider: str = "auto", specialized_prompt: bool = False) -> dict:
-        print(f"DEBUG: generate_answer called. Provider: {provider}, Context length: {len(context)}")
+    async def generate_answer(self, query: str, context: str, provider: str = "groq", specialized_prompt: bool = False) -> dict:
+        print(f"DEBUG: generate_answer called. Provider: Groq, Context length: {len(context)}")
         """
-        Generates a grounded answer.
-        provider: "auto" (Ollama → Groq), "ollama", "groq"
+        Generates a grounded answer using Groq API.
         specialized_prompt: If True, query is used as the full prompt.
         """
         if not context or str(context).strip() == "":
@@ -113,21 +107,12 @@ class StudyBrainLLM:
 
         answer_text = None
 
-        # 1. Try Ollama if available
-        if provider in ["auto", "ollama"]:
-            answer_text = await self._call_ollama(prompt)
-            if not answer_text and provider == "ollama":
-                return {"answer": "Error: Local Ollama is not responding.", "sources": []}
-
-        # 2. Try Groq (free tier)
-        if not answer_text and provider in ["auto", "groq"]:
-            print("Trying Groq...")
-            try:
-                # Use higher token limit for quizzes/specialized prompts
-                m_tokens = 4096 if specialized_prompt else 2048
-                answer_text = await self._call_groq(prompt, max_tokens=m_tokens)
-            except Exception as e:
-                answer_text = f"AI error: {str(e)}"
+        # Call Groq API
+        try:
+            m_tokens = 4096 if specialized_prompt else 2048
+            answer_text = await self._call_groq(prompt, max_tokens=m_tokens)
+        except Exception as e:
+            answer_text = f"AI error: {str(e)}"
 
         if not answer_text:
             if not os.environ.get("GROQ_API_KEY"):
@@ -140,3 +125,4 @@ class StudyBrainLLM:
 
 # Global instance
 llm = StudyBrainLLM()
+

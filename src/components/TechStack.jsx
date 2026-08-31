@@ -7,7 +7,7 @@ const TECH = [
   { layer: 'Document Processing', pills: ['PyMuPDF', 'Chunking', 'Cleaning'] },
   { layer: 'AI / Embeddings', pills: ['Sentence Transformers', 'all-MiniLM-L6-v2'] },
   { layer: 'Vector Database', pills: ['FAISS', 'Local Storage'] },
-  { layer: 'LLM Integration', pills: ['Google Gemini 1.5 Flash', 'RAG Pipeline'] },
+  { layer: 'LLM Integration', pills: ['Groq Cloud API (LPU Inference)', 'RAG Pipeline'] },
 ];
 
 const PHASES = [
