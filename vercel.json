@@ -9,5 +9,11 @@
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/index.py": {
+      "includeFiles": "backend/**",
+      "excludeFiles": "{public/**,src/**,dist/**,node_modules/**,test_*.py,*.md,*.zip,*.pem,*.txt}"
+    }
+  }
 }
