@@ -1,5 +1,7 @@
 # StudyBrain AI 🧠⚡
 
+### 🚀 **Live Custom Domain**: [https://www.studybrainai.me](https://www.studybrainai.me) (or [https://studybrainai.me](https://studybrainai.me))
+
 An intelligent, lightning-fast personal AI learning companion powered by **Groq Ultra-Fast AI Inference** and a **Multi-Modal Retrieval-Augmented Generation (RAG)** pipeline. StudyBrain AI transforms your study materials (PDFs, notes, textbooks, code) into a dynamic, interactive knowledge engine.
 
 ---
