@@ -241,48 +241,16 @@ body {
 
 @media (max-width: 768px) {
   .section-overlay {
-    padding: 4rem 1.5rem;
-  }
-
-  .shell-container {
-    flex-direction: column;
-  }
-  
-  .sidebar {
-    width: 100% !important;
-    height: auto !important;
-    flex-direction: row !important;
-    border-right: none !important;
-    border-bottom: 1px solid var(--color-border);
-    overflow-x: auto;
-    padding: 0.5rem;
-  }
-
-  .sidebar-logo, .upgrade-card, .sidebar-footer {
-    display: none !important;
-  }
-
-  .sidebar-nav {
-    flex-direction: row !important;
-    padding: 0 !important;
-    width: 100%;
-    justify-content: space-around;
-  }
-
-  .sidebar-link {
-    padding: 0.75rem !important;
-    aspect-ratio: 1/1;
-    justify-content: center !important;
-  }
-
-  .sidebar-link span {
-    display: none;
+    padding: 3rem 1.25rem;
   }
 }
 
 @media (max-width: 480px) {
+  .section-overlay {
+    padding: 2.5rem 1rem;
+  }
   .btn-primary, .btn-ghost {
     width: 100%;
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem 1.25rem;
   }
 }

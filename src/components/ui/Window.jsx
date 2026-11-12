@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react';
 import Draggable from 'react-draggable';
-import { MessageSquare, X, Minus, Square, Send } from 'lucide-react';
+import { MessageSquare, X, Send } from 'lucide-react';
+import { authFetch } from '../../utils/api';
 import './Window.css';
 
 const API = '/api';
 
-export default function Window({ id, title, onClose, initialPos = { x: 50, y: 50 } }) {
+export default function Window({ title, onClose, initialPos = { x: 50, y: 50 } }) {
   const nodeRef = useRef(null);
   const [messages, setMessages] = useState([
     { role: 'ai', content: `Hello! I am your AI study assistant for **${title}**. How can I help you today?` }
@@ -23,8 +24,7 @@ export default function Window({ id, title, onClose, initialPos = { x: 50, y: 50
     setIsTyping(true);
 
     try {
-      
-      const res = await fetch(`${API}/ai/ask`, {
+      const res = await authFetch(`${API}/ai/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: query + ` (Context: ${title})` }),
@@ -37,7 +37,7 @@ export default function Window({ id, title, onClose, initialPos = { x: 50, y: 50
         role: 'ai', 
         content: data.answer || "No response received." 
       }]);
-    } catch (err) {
+    } catch {
       setMessages(prev => [...prev, { 
         role: 'ai', 
         content: "⚠️ Failed to reach the StudyBrain API." 

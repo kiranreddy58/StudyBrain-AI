@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import './Dashboard.css';
 import { Book, Clock, Target, Zap, ChevronRight, Loader } from 'lucide-react';
 import OnboardingWelcome from '../components/OnboardingWelcome';
+import { authFetch, getCurrentUser } from '../utils/api';
 
 const API = '/api';
 
@@ -11,64 +12,79 @@ export default function Dashboard({ user, onSwitchView }) {
   const [docsCount, setDocsCount] = useState(0);
   const [stats, setStats] = useState({ studyTime: '0h', streak: '0d' });
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(getCurrentUser());
+
+  const fetchData = async () => {
+    try {
+      const [masteryRes, recRes, docRes] = await Promise.all([
+        authFetch(`${API}/learning/topic-mastery`),
+        authFetch(`${API}/copilot/learning-progress`),
+        authFetch(`${API}/documents`),
+      ]);
+      
+      if (masteryRes.ok) {
+        const m = await masteryRes.json();
+        setMastery(m.topics || []);
+      }
+
+      if (docRes.ok) {
+        const d = await docRes.json();
+        setDocsCount(d.documents?.length || 0);
+      }
+
+      if (recRes.ok) {
+        const data = await recRes.json();
+        setRecommendations(data.recommendations || []);
+        setStats({
+          studyTime: data.total_study_time || '0h',
+          streak: data.streak || '0d'
+        });
+      }
+    } catch (err) {
+      console.error("Dashboard fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const [masteryRes, recRes, docRes] = await Promise.all([
-          fetch(`${API}/learning/topic-mastery`),
-          fetch(`${API}/copilot/learning-progress`),
-          fetch(`${API}/documents`),
-        ]);
-        
-        if (masteryRes.ok) {
-          const m = await masteryRes.json();
-          setMastery(m.topics || []);
-        }
-
-        if (docRes.ok) {
-          const d = await docRes.json();
-          setDocsCount(d.documents?.length || 0);
-        }
-
-        if (recRes.ok) {
-          const data = await recRes.json();
-          setRecommendations(data.recommendations || []);
-          setStats({
-            studyTime: data.total_study_time || '0h',
-            streak: data.streak || '0d'
-          });
-        }
-      } catch (err) {
-        console.error("Dashboard fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
     fetchData();
 
-    
-    const eventSource = new EventSource(`${API}/events`);
-    
-    eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      console.log("Real-time update received:", data.type);
-      
+    const handleAuthChange = () => {
+      setCurrentUser(getCurrentUser());
       fetchData();
     };
+    window.addEventListener('sb_auth_changed', handleAuthChange);
 
-    eventSource.onerror = (err) => {
-      console.error("SSE Connection error:", err);
-      eventSource.close();
-    };
+    let eventSource;
+    try {
+      eventSource = new EventSource(`${API}/events`);
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          // If update is for a different user, ignore
+          const activeUid = getCurrentUser()?.id;
+          if (data.user_id && activeUid && data.user_id !== activeUid) {
+            return;
+          }
+          fetchData();
+        } catch {
+          fetchData();
+        }
+      };
+      eventSource.onerror = () => {
+        eventSource.close();
+      };
+    } catch {
+      // SSE not available
+    }
 
     return () => {
-      eventSource.close();
+      window.removeEventListener('sb_auth_changed', handleAuthChange);
+      if (eventSource) eventSource.close();
     };
   }, []);
 
-  
   const avgAccuracy = mastery.length
     ? Math.round(mastery.reduce((s, t) => s + t.mastery_score, 0) / mastery.length)
     : 0;
@@ -80,17 +96,19 @@ export default function Dashboard({ user, onSwitchView }) {
     { label: 'Study Streak', value: stats.streak || '0d', icon: Zap, color: '#f59e0b' },
   ];
 
-  const COLORS = ['#6366f1', '#22d3ee', '#a78bfa', '#f472b6', '#10b981', '#f59e0b'];
+  const userName = currentUser?.display_name || currentUser?.username || user?.name || 'Scholar';
 
   return (
     <div className="dashboard-container">
-      <header className="dashboard-welcome" style={{ gridColumn: 'span 2', marginBottom: '1rem' }}>
-        <h2 style={{ fontSize: '1.8rem', fontWeight: 800 }}>Welcome back, {user?.name || 'Student'}! 👋</h2>
-        <p style={{ color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>Here is what's happening with your study progress.</p>
+      <header className="dashboard-welcome">
+        <h2>Welcome back, {userName}! 👋</h2>
+        <p>Here is what's happening with your personalized study vault.</p>
       </header>
 
-      {mastery.length === 0 && !loading && (
-        <OnboardingWelcome onUploadClick={() => onSwitchView('library')} />
+      {docsCount === 0 && !loading && (
+        <div style={{ gridColumn: 'span 2' }}>
+          <OnboardingWelcome onUploadClick={() => onSwitchView('library')} />
+        </div>
       )}
 
       <div className="dashboard-stats-row">
@@ -116,10 +134,12 @@ export default function Dashboard({ user, onSwitchView }) {
             Loading mastery data...
           </div>
         ) : mastery.length === 0 ? (
-          <div className="empty-mini-state">No topic data yet</div>
+          <div className="empty-mini-state">
+            No topic data yet. Complete study quizzes in the AI Assistant to build mastery.
+          </div>
         ) : (
           <div className="mastery-list">
-            {mastery.slice(0, 3).map((item) => (
+            {mastery.slice(0, 4).map((item) => (
               <div key={item.topic} className="mastery-item">
                 <div className="mastery-info">
                   <span className="mastery-name">{item.topic}</span>
@@ -140,22 +160,30 @@ export default function Dashboard({ user, onSwitchView }) {
       <div className="dashboard-card">
         <div className="stat-header" style={{ marginBottom: '0.5rem' }}>
           <h3 className="card-title">What to Study Next</h3>
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>AI Recommendations</span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>AI Insights</span>
         </div>
         {loading ? (
           <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', padding: '0.5rem 0' }}>Loading...</div>
         ) : recommendations.length === 0 ? (
-          <div className="empty-mini-state">Upload files to get AI insights</div>
+          <div className="empty-mini-state">
+            Upload study materials in Library to get personalized AI learning recommendations.
+          </div>
         ) : (
           <div className="recent-activities">
             {recommendations.map((rec, i) => (
-              <div key={i} className="activity-item">
+              <div 
+                key={i} 
+                className="activity-item" 
+                onClick={() => onSwitchView('assistant')}
+                style={{ cursor: 'pointer' }}
+                title="Open in AI Assistant"
+              >
                 <div className="activity-dot" />
                 <div className="activity-content">
-                  <p className="activity-title">{rec.type}: {rec.topic}</p>
-                  <p className="activity-time">{rec.reason}</p>
+                  <p className="activity-title">{rec.topic}</p>
+                  <p className="activity-time">Priority: {rec.priority} (Mastery: {rec.mastery_score}%)</p>
                 </div>
-                <ChevronRight size={14} color="rgba(255,255,255,0.3)" />
+                <ChevronRight size={14} color="rgba(255,255,255,0.4)" />
               </div>
             ))}
           </div>

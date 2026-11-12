@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Send, BookOpen, Lightbulb } from 'lucide-react';
 import './ModuleStyles.css';
+import { authFetch } from '../utils/api';
 
 export default function ExplainModule({ selectedFile }) {
   const [concept, setConcept] = useState('');
@@ -11,7 +12,7 @@ export default function ExplainModule({ selectedFile }) {
     if (!concept.trim()) return;
     setLoading(true);
     try {
-      const res = await fetch('/api/copilot/explain', {
+      const res = await authFetch('/api/copilot/explain', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

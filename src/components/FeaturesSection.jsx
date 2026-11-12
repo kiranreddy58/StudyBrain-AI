@@ -2,53 +2,70 @@ import { useEffect, useRef } from 'react';
 import './FeaturesSection.css';
 
 const FEATURES = [
-  { icon: '📡', color: 'indigo', title: 'RAG Knowledge Engine', desc: 'Answers every question using your own uploaded study materials via Retrieval-Augmented Generation — no hallucination, full citation.' },
-  { icon: '🪟', color: 'cyan', title: 'Multi-Window Workspace', desc: 'Open multiple floating, draggable AI assistant windows simultaneously — quiz in one, explain in another, solve assignments in a third.' },
-  { icon: '🧩', color: 'violet', title: 'Adaptive Quiz Generator', desc: 'Automatically generates MCQ, short-answer, and coding questions with difficulty that adjusts based on your mastery score.' },
-  { icon: '🗺️', color: 'green', title: 'Learning Progress Tracker', desc: 'Tracks quiz scores, study time, and mistakes per topic to compute a mastery score (0–100) and surface your weak areas.' },
-  { icon: '📂', color: 'orange', title: 'Multimodal Document Support', desc: 'Processes PDFs, lecture slides, handwritten notes via OCR, code files, and plain text — all converted into searchable knowledge chunks.' },
-  { icon: '💡', color: 'pink', title: 'Smart Topic Recommendations', desc: 'The learning engine analyses your weak topics and automatically recommends what to study next, keeping you on the optimal learning path.' },
+  { 
+    title: 'Grounded Knowledge Retrieval', 
+    desc: 'Answers questions using your uploaded study materials with direct citations and zero hallucinations.' 
+  },
+  { 
+    title: 'Modular Workspace', 
+    desc: 'Study flexibly with dedicated modules for document reading, concept explanations, and practice quizzes.' 
+  },
+  { 
+    title: 'Adaptive Quiz Generator', 
+    desc: 'Generates practice questions that dynamically adjust difficulty based on your mastery score.' 
+  },
+  { 
+    title: 'Progress & Retention Tracking', 
+    desc: 'Tracks study time, quiz accuracy, and topic mastery to highlight concepts that need reinforcement.' 
+  },
+  { 
+    title: 'Multi-Format Document Support', 
+    desc: 'Processes and indexes PDFs, lecture notes, scanned sheets, and code files into structured knowledge.' 
+  },
+  { 
+    title: 'Personalized Recommendations', 
+    desc: 'Detects weak areas and suggests high-priority topics to maximize study efficiency.' 
+  },
 ];
 
-function useReveal(refs) {
+export default function FeaturesSection({ onEnterApp }) {
+  const cardRefs = useRef([]);
+
   useEffect(() => {
-    const observers = refs.map((ref, i) => {
-      if (!ref.current) return null;
+    const observers = cardRefs.current.map((el, i) => {
+      if (!el) return null;
       const observer = new IntersectionObserver(
         ([entry]) => {
           if (entry.isIntersecting) {
-            setTimeout(() => ref.current && ref.current.classList.add('visible'), i * 80);
+            setTimeout(() => el && el.classList.add('visible'), i * 80);
           }
         },
         { threshold: 0.15 }
       );
-      observer.observe(ref.current);
+      observer.observe(el);
       return observer;
     });
     return () => observers.forEach(o => o && o.disconnect());
-  }, [refs]);
-}
-
-export default function FeaturesSection({ onEnterApp }) {
-  const cardRefs = FEATURES.map(() => useRef(null));
-
-  useReveal(cardRefs);
+  }, []);
 
   return (
     <section className="features-section" id="features">
       <div className="features-header">
-        <span className="eyebrow-tag">Core Capabilities</span>
+        <span className="eyebrow-tag">Features</span>
         <h2 className="section-title">Everything You Need<br />to Master Any Subject</h2>
         <p className="section-sub">
-          Six powerful AI-driven features that work together to create
-          a personalised, adaptive learning experience.
+          Core learning capabilities built to transform your notes into an adaptive tutoring system.
         </p>
       </div>
 
       <div className="features-grid">
         {FEATURES.map((f, i) => (
-          <div key={i} ref={cardRefs[i]} className="feature-card">
-            <div className={`feature-icon ${f.color}`}>{f.icon}</div>
+          <div 
+            key={i} 
+            ref={el => { cardRefs.current[i] = el; }} 
+            className="feature-card"
+            onClick={onEnterApp}
+          >
             <h3 className="feature-title">{f.title}</h3>
             <p className="feature-desc">{f.desc}</p>
           </div>

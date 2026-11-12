@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BookOpen, Send, HelpCircle, CheckCircle } from 'lucide-react';
 import './ModuleStyles.css';
+import { authFetch } from '../utils/api';
 
 export default function AssignmentModule({ selectedFile }) {
   const [question, setQuestion] = useState('');
@@ -11,7 +12,7 @@ export default function AssignmentModule({ selectedFile }) {
     if (!question.trim()) return;
     setLoading(true);
     try {
-      const res = await fetch('/api/copilot/assignment-help', {
+      const res = await authFetch('/api/copilot/assignment-help', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

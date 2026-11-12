@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import './Library.css';
-import { Search, FileText, FileCode, Image as ImageIcon, Plus, MessageCircle, Eye } from 'lucide-react';
+import { Search, FileText, FileCode, Image as ImageIcon, Plus, MessageCircle, Eye, Trash2, Edit3 } from 'lucide-react';
+import { authFetch, getCurrentUser } from '../utils/api';
 
 const API = '/api';
 
@@ -19,23 +20,9 @@ export default function Library({ onOpenAI, onView }) {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
 
-  
-  useEffect(() => {
-    fetchDocuments();
-
-    const eventSource = new EventSource(`${API}/events`);
-    eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type.startsWith("DOCUMENT_")) {
-        fetchDocuments();
-      }
-    };
-    return () => eventSource.close();
-  }, []);
-
   const fetchDocuments = async () => {
     try {
-      const res = await fetch(`${API}/documents`);
+      const res = await authFetch(`${API}/documents`);
       if (res.ok) {
         const data = await res.json();
         setDocuments(data.documents || []);
@@ -45,21 +32,61 @@ export default function Library({ onOpenAI, onView }) {
     }
   };
 
-  const handleDelete = async (docId) => {
-    if (!confirm("Are you sure you want to delete this module?")) return;
+  useEffect(() => {
+    fetchDocuments();
+
+    const handleAuthChange = () => {
+      fetchDocuments();
+    };
+    window.addEventListener('sb_auth_changed', handleAuthChange);
+
+    let eventSource;
     try {
-      const res = await fetch(`${API}/document/${docId}`, { method: 'DELETE' });
+      eventSource = new EventSource(`${API}/events`);
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          const activeUid = getCurrentUser()?.id;
+          if (data.user_id && activeUid && data.user_id !== activeUid) {
+            return;
+          }
+          if (data.type && data.type.startsWith("DOCUMENT_")) {
+            fetchDocuments();
+          }
+        } catch {
+          fetchDocuments();
+        }
+      };
+      eventSource.onerror = () => {
+        eventSource.close();
+      };
+    } catch {
+      // SSE fallback
+    }
+
+    return () => {
+      window.removeEventListener('sb_auth_changed', handleAuthChange);
+      if (eventSource) eventSource.close();
+    };
+  }, []);
+
+  const handleDelete = async (docId, e) => {
+    e?.stopPropagation();
+    if (!confirm("Are you sure you want to delete this study module from your vault?")) return;
+    try {
+      const res = await authFetch(`${API}/document/${docId}`, { method: 'DELETE' });
       if (res.ok) fetchDocuments();
     } catch (err) {
       console.error("Delete error:", err);
     }
   };
 
-  const handleRename = async (docId, currentName) => {
-    const newName = prompt("Enter new name:", currentName);
+  const handleRename = async (docId, currentName, e) => {
+    e?.stopPropagation();
+    const newName = prompt("Enter new document name:", currentName);
     if (!newName || newName === currentName) return;
     try {
-      const res = await fetch(`${API}/document/${docId}`, {
+      const res = await authFetch(`${API}/document/${docId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ new_name: newName }),
@@ -79,13 +106,15 @@ export default function Library({ onOpenAI, onView }) {
     formData.append('file', file);
 
     try {
-      const res = await fetch(`${API}/upload`, {
+      const res = await authFetch(`${API}/upload`, {
         method: 'POST',
         body: formData,
       });
       if (!res.ok) {
         const err = await res.json();
         alert(`Upload failed: ${err.detail || res.status}`);
+      } else {
+        await fetchDocuments();
       }
     } catch (err) {
       console.error("Upload error:", err);
@@ -128,14 +157,15 @@ export default function Library({ onOpenAI, onView }) {
 
         <button className="btn-primary" onClick={triggerUpload} disabled={uploading}>
           <Plus size={16} style={{ marginRight: '6px' }} />
-          {uploading ? 'Uploading...' : 'New Module'}
+          {uploading ? 'Ingesting...' : 'Upload Document'}
         </button>
       </div>
 
       {uploading ? (
         <div className="upload-area" style={{ borderColor: 'var(--color-accent)' }}>
-          <div className="upload-title">Ingesting document... please wait.</div>
-          <div className="progress-track" style={{ width: '300px', marginTop: '1rem' }}>
+          <div className="upload-title">Ingesting & chunking document for AI retrieval...</div>
+          <p className="upload-desc">Generating vector embeddings and semantic citations.</p>
+          <div className="progress-track" style={{ width: '280px', marginTop: '1rem' }}>
             <div className="progress-fill" style={{ width: '100%', backgroundColor: 'var(--color-accent)', animation: 'pulse 1.5s infinite' }} />
           </div>
         </div>
@@ -145,39 +175,50 @@ export default function Library({ onOpenAI, onView }) {
             <Plus size={32} />
           </div>
           <div className="upload-title">Drop files here to ingest</div>
-          <p className="upload-desc">PDFs, images, notes, or code. Max 50MB per file.</p>
+          <p className="upload-desc">PDFs, lecture notes, textbook chapters, or code. Isolated to your account.</p>
           <button className="btn-ghost" style={{ marginTop: '0.5rem' }}>Browse Local Files</button>
         </div>
       )}
 
       <div className="library-grid">
         {filteredDocs.length === 0 && !uploading && (
-          <div style={{ color: 'var(--color-text-muted)', gridColumn: '1 / -1', textAlign: 'center', padding: '2rem' }}>
-            No documents found. Start by uploading your study materials.
+          <div className="empty-mini-state" style={{ gridColumn: '1 / -1' }}>
+            No documents found in your vault. Upload PDFs, slides, or code files to begin asking questions!
           </div>
         )}
         {filteredDocs.map((doc) => (
           <div key={doc.id} className="doc-card">
-            <div className="doc-type-icon">
-              {getIcon(doc.type || 'text')}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div className="doc-type-icon">
+                {getIcon(doc.type || 'text')}
+              </div>
+              <button 
+                className="btn-doc-edit" 
+                onClick={(e) => handleRename(doc.id, doc.filename, e)}
+                title="Rename document"
+              >
+                <Edit3 size={14} />
+              </button>
             </div>
-            <div className="doc-title" title={doc.filename || doc.id} onClick={() => handleRename(doc.id, doc.filename)}>
+            
+            <div className="doc-title" title={doc.filename || doc.id}>
               {doc.filename || ((doc.id).substring(0, 15) + '...')}
             </div>
+            
             <div className="doc-meta">
-              <span>{new Date(doc.uploaded_at).toLocaleDateString()}</span>
-              <span>{doc.chunks_count || 0} chunks</span>
+              <span>{doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString() : 'Recent'}</span>
+              <span>{doc.chunks_count || 1} chunks</span>
             </div>
             
             <div className="doc-actions">
-              <button className="btn-doc-action" onClick={() => onView(doc)}>
+              <button className="btn-doc-action" onClick={() => onView(doc)} title="Read document">
                 <Eye size={14} /> View
               </button>
-              <button className="btn-doc-action" onClick={() => onOpenAI(doc)}>
-                <MessageCircle size={14} /> Ask
+              <button className="btn-doc-action primary" onClick={() => onOpenAI(doc)} title="Ask AI tutor">
+                <MessageCircle size={14} /> Ask AI
               </button>
-              <button className="btn-doc-action delete" onClick={() => handleDelete(doc.id)} style={{ color: '#ef4444' }}>
-                Delete
+              <button className="btn-doc-action delete" onClick={(e) => handleDelete(doc.id, e)} title="Delete document">
+                <Trash2 size={14} />
               </button>
             </div>
           </div>

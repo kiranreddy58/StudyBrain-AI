@@ -31,24 +31,20 @@ export default function ProductOverview({ onEnterApp }) {
   return (
     <section className="overview-section" id="product">
       <div className="overview-inner">
-        {}
         <div className="overview-text">
-          <span className="eyebrow-tag">What Is StudyBrain AI?</span>
-          <h2 className="section-title">Your AI-Powered<br />Study Companion</h2>
+          <span className="eyebrow-tag">Overview</span>
+          <h2 className="section-title">Your Intelligent<br />Study Companion</h2>
           <p ref={descRef} className="overview-desc">
-            StudyBrain AI is your comprehensive intelligent learning platform. 
-            Upload your PDFs, lecture notes, slides, or code files — and 
-            transform them into a dedicated personal knowledge engine. 
-            Ask complex questions, generate adaptive quizzes, and stay 
-            ahead with AI-powered insights that grow with your knowledge.
+            Upload textbooks, lecture notes, slides, and code files to create
+            a private knowledge base. Ask questions, generate practice quizzes,
+            and review verified explanations grounded in your course materials.
           </p>
           <ul ref={pointsRef} className="overview-points">
             {[
-              'Retrieval-Augmented Generation (RAG) answers from your own materials',
-              'Multi-window AI assistant — study multiple topics in parallel',
-              'Adaptive quiz difficulty based on your mastery score',
-              'Context-aware explanations tailored to your knowledge level',
-              'Full multimodal support: PDFs, images, code, handwritten notes',
+              'Direct answers grounded in your uploaded documents',
+              'Parallel workspace for asking, explaining, and quizzes',
+              'Adaptive quizzes tailored to your mastery level',
+              'Document support for PDFs, images, and text',
             ].map((point, i) => (
               <li key={i} className="overview-point">
                 <span className="overview-point-dot" />
@@ -58,34 +54,29 @@ export default function ProductOverview({ onEnterApp }) {
           </ul>
         </div>
 
-        {}
         <div className="overview-visual">
-          <div ref={card1} className="mini-card">
-            <div className="mini-card-icon indigo">📄</div>
+          <div ref={card1} className="mini-card" onClick={onEnterApp}>
             <div className="mini-card-body">
               <div className="mini-card-label">Document Ingestion</div>
-              <div className="mini-card-sub">PDF, PPT, images, code, text</div>
+              <div className="mini-card-sub">PDF, images, code, and text</div>
             </div>
           </div>
-          <div ref={card2} className="mini-card">
-            <div className="mini-card-icon cyan">🔍</div>
+          <div ref={card2} className="mini-card" onClick={onEnterApp}>
             <div className="mini-card-body">
               <div className="mini-card-label">Semantic Search</div>
-              <div className="mini-card-sub">FAISS vector similarity retrieval</div>
+              <div className="mini-card-sub">Fast vector similarity retrieval</div>
             </div>
           </div>
-          <div ref={card3} className="mini-card">
-            <div className="mini-card-icon violet">🤖</div>
+          <div ref={card3} className="mini-card" onClick={onEnterApp}>
             <div className="mini-card-body">
               <div className="mini-card-label">AI Answer Engine</div>
-              <div className="mini-card-sub">LLM + RAG grounded responses</div>
+              <div className="mini-card-sub">Verified, cited explanations</div>
             </div>
           </div>
-          <div ref={card4} className="mini-card">
-            <div className="mini-card-icon green">📈</div>
+          <div ref={card4} className="mini-card" onClick={onEnterApp}>
             <div className="mini-card-body">
               <div className="mini-card-label">Adaptive Learning</div>
-              <div className="mini-card-sub">Mastery tracking & recommendations</div>
+              <div className="mini-card-sub">Mastery tracking and recommendations</div>
             </div>
           </div>
         </div>

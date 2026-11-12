@@ -3,46 +3,38 @@ import './UseCases.css';
 
 const CASES = [
   {
-    emoji: '🎓',
     title: 'Exam Preparation',
-    desc: 'Upload your textbooks and past papers. Generate high-probability exam questions, quiz yourself adaptively, and let the AI pinpoint your weak areas before the exam.',
-    quote: '"Generated 50 exam questions from my notes in 30 seconds."',
+    desc: 'Upload textbooks and revision notes. Generate practice exam questions, test yourself adaptively, and pinpoint topics needing revision.',
   },
   {
-    emoji: '📝',
-    title: 'Assignment Assistance',
-    desc: 'Paste your assignment question — the AI retrieves relevant material from your notes and explains the solution step-by-step, with hints before full answers.',
-    quote: '"Solved my ML assignment with citations from my own lecture slides."',
+    title: 'Assignment Support',
+    desc: 'Retrieve relevant sections from course materials with step-by-step guidance, hints, and source references.',
   },
   {
-    emoji: '🔬',
-    title: 'Concept Deep-Dives',
-    desc: 'Don\'t just memorise — understand. Ask the AI to explain gradient descent, entropy, or backpropagation in simple terms, tailored to your current mastery level.',
-    quote: '"Finally understood backpropagation with a custom explanation."',
+    title: 'Concept Clarification',
+    desc: 'Break down complex topics into clear explanations adjusted to your current knowledge level and subject matter.',
   },
   {
-    emoji: '📊',
     title: 'Progress Monitoring',
-    desc: 'Track mastery scores per topic, identify strong and weak areas, follow personalised next-topic recommendations, and maintain a study streak to stay consistent.',
-    quote: '"My mastery dashboard shows exactly where I need to focus."',
+    desc: 'Track comprehension per topic, identify strong and weak concepts, and maintain a structured learning plan.',
   },
 ];
 
 export default function UseCases() {
-  const cardRefs = CASES.map(() => useRef(null));
+  const cardRefs = useRef([]);
 
   useEffect(() => {
-    const observers = cardRefs.map((ref, i) => {
-      if (!ref.current) return null;
+    const observers = cardRefs.current.map((el, i) => {
+      if (!el) return null;
       const observer = new IntersectionObserver(
         ([entry]) => {
           if (entry.isIntersecting) {
-            setTimeout(() => ref.current && ref.current.classList.add('visible'), i * 100);
+            setTimeout(() => el && el.classList.add('visible'), i * 100);
           }
         },
         { threshold: 0.2 }
       );
-      observer.observe(ref.current);
+      observer.observe(el);
       return observer;
     });
     return () => observers.forEach(o => o && o.disconnect());
@@ -52,20 +44,17 @@ export default function UseCases() {
     <section className="usecases-section" id="usecases">
       <div className="usecases-header">
         <span className="eyebrow-tag">Use Cases</span>
-        <h2 className="section-title">Designed for Students<br />Who Want to Learn Smarter</h2>
+        <h2 className="section-title">Designed for Focused<br />Learning</h2>
         <p className="section-sub">
-          Whether you're cramming for finals or mastering a new field,
-          StudyBrain AI adapts to your purpose.
+          Practical ways StudyBrain AI supports your coursework and exam preparation.
         </p>
       </div>
 
       <div className="usecase-grid">
         {CASES.map((c, i) => (
-          <div key={i} ref={cardRefs[i]} className="usecase-card">
-            <span className="usecase-emoji">{c.emoji}</span>
+          <div key={i} ref={el => { cardRefs.current[i] = el; }} className="usecase-card">
             <h3 className="usecase-title">{c.title}</h3>
             <p className="usecase-desc">{c.desc}</p>
-            <div className="usecase-quote">{c.quote}</div>
           </div>
         ))}
       </div>

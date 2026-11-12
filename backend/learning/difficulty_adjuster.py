@@ -5,13 +5,12 @@ Maps topic mastery score to an appropriate quiz difficulty level.
 
 from backend.learning.mastery_model import estimate_topic_mastery
 
-
-def adjust_question_difficulty(topic: str) -> dict:
+def adjust_question_difficulty(topic: str, user_id: str = "default") -> dict:
     """
-    Determine quiz difficulty for a topic based on mastery score.
+    Determine quiz difficulty for a topic based on mastery score for a user.
     Returns: {topic, mastery_score, difficulty, description}
     """
-    mastery = estimate_topic_mastery(topic)
+    mastery = estimate_topic_mastery(topic, user_id=user_id)
 
     if mastery < 40:
         difficulty = "easy"

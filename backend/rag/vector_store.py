@@ -32,31 +32,27 @@ class VectorStore:
         self.embeddings.extend(embeddings)
         self.metadata.extend(chunk_metadata)
 
-    def search(self, query_embedding: list, top_k: int = 5):
+    def search(self, query_embedding: list, top_k: int = 5, user_id: str = None):
         """
-        Performs similarity search using pure Python L2 distance and returns top-k chunks.
+        Performs similarity search using pure Python L2 distance and returns top-k chunks,
+        optionally filtered by user_id for multi-tenant isolation.
         """
         if not self.embeddings or not self.metadata or not query_embedding:
             return []
             
         q_vec = query_embedding
         
-        distances = []
-        for emb in self.embeddings:
+        candidates = []
+        for idx, (emb, meta) in enumerate(zip(self.embeddings, self.metadata)):
+            if user_id:
+                chunk_user = meta.get("user_id")
+                if chunk_user and chunk_user != user_id and chunk_user != "default":
+                    continue
             dist = sum((x - y) ** 2 for x, y in zip(emb, q_vec))
-            distances.append(dist)
-        
-        top_k = min(top_k, len(distances))
-        indices = sorted(range(len(distances)), key=lambda i: distances[i])[:top_k]
-        
-        results = []
-        for idx in indices:
-            if idx < len(self.metadata):
-                results.append({
-                    "metadata": self.metadata[idx],
-                    "score": float(distances[idx])
-                })
-        return results
+            candidates.append((dist, meta))
+            
+        candidates.sort(key=lambda x: x[0])
+        return [{"metadata": meta, "score": float(dist)} for dist, meta in candidates[:top_k]]
 
     def save(self):
         """

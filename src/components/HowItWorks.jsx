@@ -2,28 +2,43 @@ import { useEffect, useRef } from 'react';
 import './HowItWorks.css';
 
 const STEPS = [
-  { title: 'Upload Your Study Materials', desc: 'Upload PDFs, images, lecture slides, code files, or handwritten notes. The system auto-detects the file type and routes it to the correct processing pipeline.' },
-  { title: 'AI Processes & Indexes Content', desc: 'The backend extracts text (using PyMuPDF + Tesseract OCR), cleans it, splits it into overlapping 500-token chunks, and stores them with rich metadata.' },
-  { title: 'Embeddings & Vector Indexing', desc: 'Each chunk is converted into a semantic vector using Sentence Transformers (all-MiniLM-L6-v2) and stored in a FAISS vector index for ultra-fast similarity search.' },
-  { title: 'Ask Questions — Get Grounded Answers', desc: 'Type any question. The system embeds it, retrieves the top 5 most relevant chunks via semantic search, builds a context prompt, and sends it to the LLM for a grounded answer with citations.' },
-  { title: 'Adapt, Quiz & Track Mastery', desc: 'Every interaction updates your mastery score per topic. The AI adjusts quiz difficulty, recommends what to study next, and identifies your weakest concepts automatically.' },
+  { 
+    title: 'Upload Study Materials', 
+    desc: 'Upload PDFs, textbooks, lecture slides, or code. The system automatically detects file types and prepares content for indexing.' 
+  },
+  { 
+    title: 'Content Processing & Chunking', 
+    desc: 'Text is parsed, cleaned, and split into structured semantic chunks with source page and document references.' 
+  },
+  { 
+    title: 'Vector Search Indexing', 
+    desc: 'Each chunk is transformed into vector embeddings and indexed for fast, accurate similarity retrieval.' 
+  },
+  { 
+    title: 'Grounded Answering', 
+    desc: 'When you ask a question, relevant passages are retrieved to generate clear, accurate answers with citations.' 
+  },
+  { 
+    title: 'Adaptive Practice & Mastery', 
+    desc: 'Study sessions update your topic mastery, tailoring quizzes and study focus to your learning pace.' 
+  },
 ];
 
 export default function HowItWorks() {
-  const stepRefs = STEPS.map(() => useRef(null));
+  const stepRefs = useRef([]);
 
   useEffect(() => {
-    const observers = stepRefs.map((ref, i) => {
-      if (!ref.current) return null;
+    const observers = stepRefs.current.map((el, i) => {
+      if (!el) return null;
       const observer = new IntersectionObserver(
         ([entry]) => {
           if (entry.isIntersecting) {
-            setTimeout(() => ref.current && ref.current.classList.add('visible'), i * 120);
+            setTimeout(() => el && el.classList.add('visible'), i * 120);
           }
         },
         { threshold: 0.2 }
       );
-      observer.observe(ref.current);
+      observer.observe(el);
       return observer;
     });
     return () => observers.forEach(o => o && o.disconnect());
@@ -32,16 +47,15 @@ export default function HowItWorks() {
   return (
     <section className="how-section" id="how">
       <div className="how-inner">
-        <span className="eyebrow-tag">How It Works</span>
-        <h2 className="section-title">From File Upload to<br />AI-Powered Answer</h2>
+        <span className="eyebrow-tag">Workflow</span>
+        <h2 className="section-title">From Upload to<br />Mastery</h2>
         <p className="section-sub">
-          Five seamless steps that transform your raw study materials
-          into an intelligent, personalised tutoring system.
+          A systematic process that converts study materials into an interactive learning environment.
         </p>
 
         <ol className="how-steps">
           {STEPS.map((step, i) => (
-            <li key={i} ref={stepRefs[i]} className="step-item">
+            <li key={i} ref={el => { stepRefs.current[i] = el; }} className="step-item">
               <div className="step-num">{String(i + 1).padStart(2, '0')}</div>
               <div className="step-body">
                 <div className="step-title">{step.title}</div>

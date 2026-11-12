@@ -1,5 +1,5 @@
 """
-Copilot Routes — Phase 5
+Copilot Routes — Phase 5 with Multi-User Isolation
 RAG-powered AI assistant endpoints:
   POST /generate-quiz     — generate quiz questions from study materials
   POST /explain           — explain a concept using RAG context
@@ -7,7 +7,7 @@ RAG-powered AI assistant endpoints:
   GET  /learning-progress — aggregate mastery + recommendations
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 from backend.rag.retriever import retrieve_context, format_context_for_llm
@@ -16,9 +16,9 @@ from backend.storage.chat_store import save_chat_message
 from backend.learning.mastery_model import get_all_mastery
 from backend.learning.recommendation_engine import recommend_next_topics
 from backend.learning.difficulty_adjuster import adjust_question_difficulty
+from backend.api.auth_routes import get_current_user_optional
 
 router = APIRouter()
-
 
 class QuizRequest(BaseModel):
     topic: str
@@ -27,28 +27,26 @@ class QuizRequest(BaseModel):
     provider: Optional[str] = "auto"
     filename: Optional[str] = None
 
-
 class ConceptRequest(BaseModel):
     concept: str
     provider: Optional[str] = "auto"
-
 
 class AssignmentRequest(BaseModel):
     question: str
     provider: Optional[str] = "auto"
 
-
 @router.post("/generate-quiz")
-async def generate_quiz(request: QuizRequest):
+async def generate_quiz(request: QuizRequest, user: Optional[dict] = Depends(get_current_user_optional)):
     """Generate interactive quiz questions from study materials."""
+    user_id = user["id"] if user else "default"
     try:
         if request.difficulty == "auto":
-            diff_info = adjust_question_difficulty(request.topic)
+            diff_info = adjust_question_difficulty(request.topic, user_id=user_id)
             difficulty = diff_info["difficulty"]
         else:
             difficulty = request.difficulty
 
-        chunks = retrieve_context(request.topic, top_k=10, source=request.filename)
+        chunks = retrieve_context(request.topic, top_k=10, source=request.filename, user_id=user_id)
         context = format_context_for_llm(chunks)
 
         prompt = (
@@ -95,12 +93,12 @@ async def generate_quiz(request: QuizRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.post("/explain")
-async def explain_concept(request: ConceptRequest):
+async def explain_concept(request: ConceptRequest, user: Optional[dict] = Depends(get_current_user_optional)):
     """Explain a concept using relevant study material chunks."""
+    user_id = user["id"] if user else "default"
     try:
-        chunks = retrieve_context(request.concept, top_k=4)
+        chunks = retrieve_context(request.concept, top_k=4, user_id=user_id)
         context = format_context_for_llm(chunks)
 
         prompt = (
@@ -116,8 +114,8 @@ async def explain_concept(request: ConceptRequest):
 
         result = await llm.generate_answer(prompt, context, provider=request.provider, specialized_prompt=True)
 
-        save_chat_message("user", f"Explain concept: {request.concept}")
-        save_chat_message("assistant", result["answer"])
+        save_chat_message("user", f"Explain concept: {request.concept}", user_id=user_id)
+        save_chat_message("assistant", result["answer"], user_id=user_id)
 
         return {
             "concept": request.concept,
@@ -127,12 +125,12 @@ async def explain_concept(request: ConceptRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.post("/assignment-help")
-async def assignment_help(request: AssignmentRequest):
+async def assignment_help(request: AssignmentRequest, user: Optional[dict] = Depends(get_current_user_optional)):
     """Provide step-by-step guidance on an assignment question."""
+    user_id = user["id"] if user else "default"
     try:
-        chunks = retrieve_context(request.question, top_k=5)
+        chunks = retrieve_context(request.question, top_k=5, user_id=user_id)
         context = format_context_for_llm(chunks)
 
         prompt = (
@@ -149,8 +147,8 @@ async def assignment_help(request: AssignmentRequest):
 
         result = await llm.generate_answer(prompt, context, provider=request.provider, specialized_prompt=True)
 
-        save_chat_message("user", f"Assignment Help: {request.question}")
-        save_chat_message("assistant", result["answer"])
+        save_chat_message("user", f"Assignment Help: {request.question}", user_id=user_id)
+        save_chat_message("assistant", result["answer"], user_id=user_id)
 
         return {
             "question": request.question,
@@ -160,26 +158,24 @@ async def assignment_help(request: AssignmentRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.get("/learning-progress")
-async def learning_progress():
+async def learning_progress(user: Optional[dict] = Depends(get_current_user_optional)):
     """
-    Aggregate dashboard: mastery scores, recommendations, study time, and streak.
+    Aggregate dashboard: mastery scores, recommendations, study time, and streak isolated by user.
     """
-    from backend.learning.learning_tracker import get_all_activity
+    from backend.learning.learning_tracker import get_all_activity, get_sessions_per_day
     from datetime import datetime, date
     
-    mastery_map = get_all_mastery()
-    recommendations = recommend_next_topics(limit=5)
-    all_activity = get_all_activity()
-    
-    from backend.learning.learning_tracker import get_sessions_per_day
-    heatmap_data = get_sessions_per_day(days=60)
+    user_id = user["id"] if user else "default"
+    mastery_map = get_all_mastery(user_id=user_id)
+    recommendations = recommend_next_topics(limit=5, user_id=user_id)
+    all_activity = get_all_activity(user_id=user_id)
+    heatmap_data = get_sessions_per_day(days=60, user_id=user_id)
 
     total_minutes = sum(a['study_time_minutes'] for a in all_activity)
     total_study_time = f"{int(total_minutes // 60)}h {int(total_minutes % 60)}m" if total_minutes > 0 else "0h"
     
-    activity_dates = sorted(list(set(datetime.fromisoformat(a['timestamp']).date() for a in all_activity)), reverse=True)
+    activity_dates = sorted(list(set(datetime.fromisoformat(a['timestamp']).date() for a in all_activity if 'timestamp' in a)), reverse=True)
     streak = 0
     if activity_dates:
         today = date.today()

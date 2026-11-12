@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Timer, CheckCircle2, XCircle, ArrowRight, Brain, Trophy, ListOrdered } from 'lucide-react';
+import { Timer, CheckCircle2, XCircle, ArrowRight, Brain, Trophy, ListOrdered, X } from 'lucide-react';
 import './QuizPlayer.css';
 
 export default function QuizPlayer({ quiz, onComplete, onExit }) {
@@ -11,6 +11,17 @@ export default function QuizPlayer({ quiz, onComplete, onExit }) {
   const [quizFinished, setQuizFinished] = useState(false);
 
   const currentQuestion = quiz[currentIdx];
+
+  const handleOptionSelect = (idx) => {
+    if (showFeedback) return;
+    
+    setSelectedOption(idx);
+    setShowFeedback(true);
+    
+    if (idx === currentQuestion?.correct_index) {
+      setScore(prev => prev + 1);
+    }
+  };
 
   useEffect(() => {
     if (quizFinished || showFeedback) return;
@@ -26,17 +37,6 @@ export default function QuizPlayer({ quiz, onComplete, onExit }) {
 
     return () => clearInterval(timer);
   }, [timeLeft, quizFinished, showFeedback]);
-
-  const handleOptionSelect = (idx) => {
-    if (showFeedback) return;
-    
-    setSelectedOption(idx);
-    setShowFeedback(true);
-    
-    if (idx === currentQuestion.correct_index) {
-      setScore(prev => prev + 1);
-    }
-  };
 
   const handleNext = () => {
     if (currentIdx < quiz.length - 1) {
@@ -76,6 +76,11 @@ export default function QuizPlayer({ quiz, onComplete, onExit }) {
           <Timer size={16} />
           <span>{timeLeft}s</span>
         </div>
+        {onExit && (
+          <button onClick={onExit} title="Exit Quiz" style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+            <X size={18} />
+          </button>
+        )}
       </header>
 
       <div className="progress-bar-container">

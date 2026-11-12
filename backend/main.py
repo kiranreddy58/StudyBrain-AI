@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 import os
-load_dotenv()
+load_dotenv(find_dotenv(usecwd=True), override=True)
 
 from fastapi.middleware.cors import CORSMiddleware
 from backend.storage.database import init_db
@@ -11,6 +11,7 @@ from backend.api.learning_routes import router as learning_router
 from backend.api.copilot_routes import router as copilot_router
 from backend.api.events import router as events_router
 from backend.api.settings_routes import router as settings_router
+from backend.api.auth_routes import router as auth_router
 
 app = FastAPI(title="StudyBrain AI Backend", version="1.0.0")
 
@@ -45,6 +46,7 @@ app.include_router(ask_router, prefix="/api/ai", tags=["AI Assistant"])
 app.include_router(learning_router, prefix="/api/learning", tags=["Learning Analytics"])
 app.include_router(copilot_router, prefix="/api/copilot", tags=["AI Copilot"])
 app.include_router(settings_router, prefix="/api/settings", tags=["Settings"])
+app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
 
 @app.get("/api/status")
 async def get_status():

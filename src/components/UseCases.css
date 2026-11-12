@@ -1,5 +1,3 @@
-
-
 .usecases-section {
   padding: clamp(4rem, 8vh, 7rem) clamp(1.5rem, 6vw, 6rem);
   position: relative;
@@ -16,7 +14,13 @@
 }
 
 .usecases-header {
-  margin-bottom: 3.5rem;
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 3.5rem;
+}
+
+.usecases-header .section-sub {
+  margin: 0 auto;
 }
 
 .usecase-grid {
@@ -33,12 +37,23 @@
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 1.25rem;
-  padding: 1.75rem;
+  padding: 2rem 1.75rem;
   opacity: 0;
   transform: translateY(24px);
   transition: opacity 0.6s var(--ease-cinematic),
               transform 0.6s var(--ease-cinematic),
               border-color 0.3s ease;
+  position: relative;
+}
+
+.usecase-card::before {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--color-accent-2);
+  margin-bottom: 1.2rem;
+  border-radius: 2px;
 }
 
 .usecase-card:nth-child(1) { transition-delay: 0.05s; }
@@ -56,24 +71,18 @@
   transform: translateY(-4px);
 }
 
-.usecase-emoji {
-  font-size: 2rem;
-  display: block;
-  margin-bottom: 1rem;
-}
-
 .usecase-title {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #fff;
   letter-spacing: -0.01em;
-  margin-bottom: 0.55rem;
+  margin-bottom: 0.65rem;
 }
 
 .usecase-desc {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 300;
-  line-height: 1.68;
+  line-height: 1.7;
   color: var(--color-text-muted);
 }
 
@@ -83,16 +92,4 @@
     gap: 1rem;
     max-width: 480px;
   }
-}
-
-.usecase-quote {
-  margin-top: 1rem;
-  padding: 0.65rem 0.85rem;
-  background: rgba(99, 102, 241, 0.08);
-  border-left: 2px solid var(--color-accent);
-  border-radius: 0 6px 6px 0;
-  font-size: 0.78rem;
-  font-style: italic;
-  color: rgba(255, 255, 255, 0.6);
-  font-weight: 300;
 }

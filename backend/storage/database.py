@@ -1,7 +1,7 @@
 import os
 import sqlite3
-from dotenv import load_dotenv
-load_dotenv()
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv(usecwd=True), override=True)
 
 _mongo_client = None
 _mongo_db = None
@@ -56,12 +56,23 @@ def init_db():
     mongo = get_mongo_db()
     if mongo is not None:
         try:
+            mongo.users.create_index("id", unique=True)
+            mongo.users.create_index("email", unique=True)
+            mongo.users.create_index("username", unique=True)
             mongo.documents.create_index("id", unique=True)
+            mongo.documents.create_index("user_id")
             mongo.document_chunks.create_index("doc_id")
+            mongo.document_chunks.create_index("user_id")
+            mongo.chat_history.create_index("user_id")
             mongo.chat_history.create_index("timestamp")
+            mongo.student_activity.create_index("user_id")
             mongo.student_activity.create_index("timestamp")
-            mongo.settings.create_index("key", unique=True)
-            print("MongoDB Atlas indexes verified.")
+            try:
+                mongo.settings.drop_index("key_1")
+            except Exception:
+                pass
+            mongo.settings.create_index([("user_id", 1), ("key", 1)], unique=True)
+            print("MongoDB Atlas indexes verified with multi-user isolation.")
             return
         except Exception as e:
             print(f"MongoDB index init notice: {e}")
@@ -69,8 +80,20 @@ def init_db():
     try:
         conn = get_connection()
         conn.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id TEXT PRIMARY KEY,
+                email TEXT UNIQUE NOT NULL,
+                username TEXT UNIQUE NOT NULL,
+                display_name TEXT,
+                password_hash TEXT NOT NULL,
+                salt TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+        """)
+        conn.execute("""
             CREATE TABLE IF NOT EXISTS documents (
                 id TEXT PRIMARY KEY,
+                user_id TEXT,
                 filename TEXT NOT NULL,
                 file_type TEXT,
                 file_size INTEGER,
@@ -83,6 +106,7 @@ def init_db():
             CREATE TABLE IF NOT EXISTS document_chunks (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 doc_id TEXT NOT NULL,
+                user_id TEXT,
                 chunk_index INTEGER,
                 content TEXT NOT NULL,
                 metadata TEXT,
@@ -92,6 +116,7 @@ def init_db():
         conn.execute("""
             CREATE TABLE IF NOT EXISTS chat_history (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT,
                 role TEXT NOT NULL,
                 content TEXT NOT NULL,
                 doc_id TEXT,
@@ -101,6 +126,7 @@ def init_db():
         conn.execute("""
             CREATE TABLE IF NOT EXISTS quiz_history (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT,
                 doc_id TEXT,
                 topic TEXT,
                 score INTEGER,
@@ -111,13 +137,16 @@ def init_db():
         """)
         conn.execute("""
             CREATE TABLE IF NOT EXISTS settings (
-                key TEXT PRIMARY KEY,
-                value TEXT NOT NULL
+                user_id TEXT DEFAULT 'default',
+                key TEXT,
+                value TEXT NOT NULL,
+                PRIMARY KEY (user_id, key)
             )
         """)
         conn.execute("""
             CREATE TABLE IF NOT EXISTS student_activity (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT,
                 topic TEXT NOT NULL,
                 quiz_score INTEGER DEFAULT 0,
                 quiz_total INTEGER DEFAULT 0,
@@ -126,6 +155,14 @@ def init_db():
                 timestamp TEXT NOT NULL
             )
         """)
+        
+        # Ensure user_id column exists for legacy SQLite schemas
+        for table in ['documents', 'document_chunks', 'chat_history', 'quiz_history', 'student_activity', 'settings']:
+            try:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN user_id TEXT DEFAULT 'default'")
+            except Exception:
+                pass
+                
         conn.commit()
         conn.close()
     except Exception as e:

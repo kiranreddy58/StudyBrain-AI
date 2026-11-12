@@ -1,6 +1,6 @@
 import os
-from dotenv import load_dotenv
-load_dotenv()
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv(usecwd=True), override=True)
 
 CANDIDATE_GROQ_MODELS = [
     os.environ.get("GROQ_MODEL"),

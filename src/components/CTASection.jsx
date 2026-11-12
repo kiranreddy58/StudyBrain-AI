@@ -26,21 +26,16 @@ export default function CTASection({ onEnterApp }) {
 
       <div className="cta-inner">
         <h2 ref={titleRef} className="cta-title">
-          Ready to{' '}
-          <span className="cta-title-grad">Study Smarter?</span>
+          Ready to Study Smarter?
         </h2>
 
         <p ref={subRef} className="cta-sub">
-          Join the future of AI-powered education. Upload your first document,
-          ask your first question, and experience the difference a personalised
-          study brain makes.
+          Upload your materials, ask questions, and test your knowledge with adaptive AI tutoring.
         </p>
 
         <div ref={actionsRef} className="cta-actions">
-          <button onClick={onEnterApp} className="btn-primary">Start for Free →</button>
-          <a href="#product" className="btn-ghost">Explore the Platform</a>
+          <button onClick={onEnterApp} className="btn-primary">Get Started</button>
         </div>
-
       </div>
     </section>
   );

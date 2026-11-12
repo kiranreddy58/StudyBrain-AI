@@ -37,7 +37,7 @@
 }
 
 .navbar-brand-name {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: #fff;
@@ -67,6 +67,22 @@
 
 .navbar-links a:hover {
   color: #fff;
+}
+
+.navbar-signin-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  color: #fff;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.navbar-signin-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(99, 102, 241, 0.4);
 }
 
 .navbar-cta {
@@ -117,8 +133,8 @@
     display: none;
   }
   
-  .navbar-cta {
-    display: none;
+  .navbar-actions {
+    display: none !important;
   }
 
   .navbar-toggle {

@@ -4,7 +4,7 @@ export default function Footer({ onEnterApp }) {
   return (
     <footer className="footer">
       <a href="#top" className="footer-brand">StudyBrain AI</a>
-      <p className="footer-copy">© 2026 StudyBrain AI — AI-Powered Learning Platform</p>
+      <p className="footer-copy">© 2026 StudyBrain AI. All rights reserved.</p>
       <ul className="footer-links">
         <li><a href="#product">Product</a></li>
         <li><a href="#features">Features</a></li>

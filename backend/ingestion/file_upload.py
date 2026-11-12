@@ -6,7 +6,8 @@ from fastapi import UploadFile
 def _get_upload_dir():
     if os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV"):
         return "/tmp/uploads"
-    local_dir = "data/uploads"
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    local_dir = os.path.join(base_dir, "data", "uploads")
     try:
         os.makedirs(local_dir, exist_ok=True)
         return local_dir

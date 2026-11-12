@@ -6,17 +6,15 @@ prioritising weak topics and avoiding already-mastered ones.
 
 from backend.learning.mastery_model import get_all_mastery
 
-
 WEAK_THRESHOLD = 50.0
 STRONG_THRESHOLD = 80.0
 
-
-def recommend_next_topics(limit: int = 5) -> list[dict]:
+def recommend_next_topics(limit: int = 5, user_id: str = "default") -> list[dict]:
     """
-    Return recommended topics ordered by priority.
+    Return recommended topics ordered by priority for a user.
     Each entry: {topic, mastery_score, priority}
     """
-    mastery_map = get_all_mastery()
+    mastery_map = get_all_mastery(user_id=user_id)
 
     weak = []
     medium = []
